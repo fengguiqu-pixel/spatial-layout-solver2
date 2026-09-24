@@ -13,7 +13,7 @@ import argparse
 import json
 import os
 import sys
-from typing import List
+from typing import List, Optional
 
 from layout_solver import config as cfg
 from layout_solver.scene import load_scene
@@ -31,9 +31,10 @@ def collect_inputs(path: str) -> List[str]:
     return [path]
 
 
-def run_one(path: str, outdir: str, door_clearance: float, png: bool) -> dict:
+def run_one(path: str, outdir: str, door_clearance: float, png: bool,
+            aisle_width: Optional[float] = None) -> dict:
     scene = load_scene(path)
-    sol = solve(scene, door_clearance=door_clearance)
+    sol = solve(scene, door_clearance=door_clearance, aisle_width=aisle_width)
     print(report(scene, sol))
 
     os.makedirs(outdir, exist_ok=True)
@@ -63,11 +64,16 @@ def main(argv=None) -> int:
                     help="紧凑模式：物品往一起挤，让剩余空地连成整块（与默认贴墙模式对比用）")
     ap.add_argument("--grid-cells", type=int, default=None,
                     help="估算剩余空地的栅格采样格数（默认 40000，越大越准越慢）")
+    ap.add_argument("--aisle-width", type=float, default=None,
+                    help=f"人行通道宽度（默认 {cfg.AISLE_WIDTH:.0f}，放不下会自动收窄）")
+    ap.add_argument("--no-aisle", action="store_true", help="关闭动线约束，只做贴墙摆放")
     args = ap.parse_args(argv)
     if args.compact:
         cfg.COMPACT_MODE = True
     if args.grid_cells:
         cfg.GRID_CELLS = args.grid_cells
+    if args.no_aisle:
+        cfg.ENABLE_AISLE = False
 
     inputs = collect_inputs(args.input)
     if not inputs:
@@ -77,7 +83,7 @@ def main(argv=None) -> int:
     mode = "紧凑模式" if cfg.COMPACT_MODE else "贴墙模式"
     print(f"运行模式: {mode}   空地采样格数: {cfg.GRID_CELLS}")
     for path in inputs:
-        run_one(path, args.output, args.door_clearance, not args.no_png)
+        run_one(path, args.output, args.door_clearance, not args.no_png, args.aisle_width)
     return 0
 
 

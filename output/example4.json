@@ -7,20 +7,26 @@
   "wall_area_ratio": 1.0,
   "floating": 0,
   "unplaced": [],
-  "reason": "",
-  "elapsed_sec": 1.023,
+  "reason": "房间尺寸所限，800 宽的通道放不下全部物品，已自动收窄到 640（这是本房间能容纳的最宽通道）",
+  "elapsed_sec": 10.406,
   "metrics": {
     "room_area": 6572952.2,
     "items_area": 3142600.0,
     "utilization": 0.4781,
     "demand_ratio": 0.4781,
-    "free_area": 3533160.3,
-    "free_ratio": 0.5375,
-    "largest_free_area": 3533160.3,
+    "free_area": 3517604.6,
+    "free_ratio": 0.5352,
+    "largest_free_area": 3517604.6,
     "free_fragments": 1,
     "reserved_area": 0,
     "usable_wall_length": 15941.0,
     "wall_area_ratio": 1.0,
+    "wall_covered_length": 9950.0,
+    "wall_usage": 0.6242,
+    "aisle_length": 2607.6,
+    "aisle_width": 640,
+    "aisle_facing": 6,
+    "doors": 1,
     "floating": 0
   },
   "placements": [
@@ -37,7 +43,8 @@
         1330.0
       ],
       "wall_contacts": 2,
-      "fridge_opening_side": "bottom"
+      "fridge_opening_side": "bottom",
+      "facing_aisle": true
     },
     {
       "name": "shelf-1",
@@ -51,7 +58,8 @@
         1000.0,
         400.0
       ],
-      "wall_contacts": 4
+      "wall_contacts": 4,
+      "facing_aisle": true
     },
     {
       "name": "shelf-2",
@@ -65,24 +73,11 @@
         1000.0,
         400.0
       ],
-      "wall_contacts": 4
+      "wall_contacts": 4,
+      "facing_aisle": true
     },
     {
       "name": "overShelf-1",
-      "type": "overShelf",
-      "center": [
-        184173.59,
-        30242.72
-      ],
-      "angle": 90.0,
-      "size": [
-        600.0,
-        400.0
-      ],
-      "wall_contacts": 2
-    },
-    {
-      "name": "overShelf-2",
       "type": "overShelf",
       "center": [
         184073.59,
@@ -93,21 +88,38 @@
         600.0,
         400.0
       ],
-      "wall_contacts": 2
+      "wall_contacts": 2,
+      "facing_aisle": true
+    },
+    {
+      "name": "overShelf-2",
+      "type": "overShelf",
+      "center": [
+        183073.59,
+        30933.25
+      ],
+      "angle": 90.0,
+      "size": [
+        600.0,
+        400.0
+      ],
+      "wall_contacts": 1,
+      "facing_aisle": true
     },
     {
       "name": "overShelf-3",
       "type": "overShelf",
       "center": [
-        184473.59,
-        30842.72
+        183173.59,
+        31548.44
       ],
       "angle": 0.0,
       "size": [
         600.0,
         400.0
       ],
-      "wall_contacts": 2
+      "wall_contacts": 1,
+      "facing_aisle": true
     }
   ]
 }

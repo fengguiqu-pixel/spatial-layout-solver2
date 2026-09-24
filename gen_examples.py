@@ -29,11 +29,16 @@ P1 = add(P0, u, 4200.0)
 P2 = add(P1, v, 2400.0)
 P3 = add(P2, u, -4200.0)
 door_a = add(P0, u, 1200.0); door_b = add(P0, u, 2000.0)
+# 顶边（P3 -> P2）上再开一个出口门
+exit_a = add(P3, u, 1400.0); exit_b = add(P3, u, 2200.0)
 poly = [P0, P1, P2, P3, P0]
+r = lambda p: [round(p[0], 4), round(p[1], 4)]
 ex6 = {
     "boundary": [[round(x, 4), round(y, 4)] for x, y in poly],
-    "door": [[round(door_a[0], 4), round(door_a[1], 4)], [round(door_b[0], 4), round(door_b[1], 4)]],
-    "isOpenInward": True,
+    "doors": [
+        {"points": [r(door_a), r(door_b)], "isOpenInward": True, "role": "enter"},
+        {"points": [r(exit_a), r(exit_b)], "isOpenInward": False, "role": "exit"},
+    ],
     "algoToPlace": {
         "fridge": [1220, 1330], "iceMaker": [760, 850],
         "shelf-1": [1000, 400], "shelf-2": [1000, 400], "shelf-3": [1000, 400], "shelf-4": [1000, 400],

@@ -3,139 +3,153 @@
   "frame_angle": 29.994,
   "items_total": 8,
   "items_placed": 8,
-  "wall_hugging": "4/8",
-  "wall_area_ratio": 0.733,
+  "wall_hugging": "3/8",
+  "wall_area_ratio": 0.172,
   "floating": 0,
   "unplaced": [],
-  "reason": "",
-  "elapsed_sec": 2.585,
+  "reason": "房间尺寸所限，800 宽的通道放不下全部物品，已自动收窄到 360（这是本房间能容纳的最宽通道）",
+  "elapsed_sec": 10.612,
   "metrics": {
     "room_area": 8813111.9,
     "items_area": 4188600.0,
     "utilization": 0.4753,
     "demand_ratio": 0.4753,
-    "free_area": 4625583.7,
-    "free_ratio": 0.5249,
-    "largest_free_area": 4472617.5,
-    "free_fragments": 6,
+    "free_area": 4625114.4,
+    "free_ratio": 0.5248,
+    "largest_free_area": 4448218.0,
+    "free_fragments": 17,
     "reserved_area": 0,
     "usable_wall_length": 5754.4,
-    "wall_area_ratio": 0.7326,
+    "wall_area_ratio": 0.1719,
+    "wall_covered_length": 2200.4,
+    "wall_usage": 0.3824,
+    "aisle_length": 2684.0,
+    "aisle_width": 360,
+    "aisle_facing": 8,
+    "doors": 1,
     "floating": 0
   },
   "placements": [
     {
-      "name": "fridge",
-      "type": "fridge",
+      "name": "overShelf-1",
+      "type": "overShelf",
       "center": [
-        6869.98,
-        29832.49
+        7407.7,
+        29721.17
+      ],
+      "angle": 119.994,
+      "size": [
+        600.0,
+        400.0
+      ],
+      "wall_contacts": 2,
+      "facing_aisle": true
+    },
+    {
+      "name": "overShelf-2",
+      "type": "overShelf",
+      "center": [
+        7101.54,
+        30251.47
+      ],
+      "angle": 119.994,
+      "size": [
+        600.0,
+        400.0
+      ],
+      "wall_contacts": 1,
+      "facing_aisle": true
+    },
+    {
+      "name": "overShelf-3",
+      "type": "overShelf",
+      "center": [
+        7024.32,
+        29384.62
       ],
       "angle": 29.994,
       "size": [
-        1220.0,
-        1330.0
+        600.0,
+        400.0
       ],
-      "wall_contacts": 2,
-      "fridge_opening_side": "top"
+      "wall_contacts": 1,
+      "facing_aisle": true
+    },
+    {
+      "name": "shelf-1",
+      "type": "shelf",
+      "center": [
+        6651.34,
+        29631.18
+      ],
+      "angle": 29.994,
+      "size": [
+        1000.0,
+        400.0
+      ],
+      "wall_contacts": 0,
+      "facing_aisle": true
+    },
+    {
+      "name": "shelf-2",
+      "type": "shelf",
+      "center": [
+        6041.55,
+        30087.5
+      ],
+      "angle": 119.994,
+      "size": [
+        1000.0,
+        400.0
+      ],
+      "wall_contacts": 0,
+      "facing_aisle": true
+    },
+    {
+      "name": "shelf-3",
+      "type": "shelf",
+      "center": [
+        5776.01,
+        29747.3
+      ],
+      "angle": 119.994,
+      "size": [
+        1000.0,
+        400.0
+      ],
+      "wall_contacts": 0,
+      "facing_aisle": true
     },
     {
       "name": "iceMaker",
       "type": "iceMaker",
       "center": [
-        6485.19,
-        30869.2
+        5601.63,
+        30849.65
       ],
       "angle": 119.994,
       "size": [
         760.0,
         850.0
       ],
-      "wall_contacts": 1
+      "wall_contacts": 0,
+      "facing_aisle": true
     },
     {
-      "name": "shelf-1",
-      "type": "shelf",
+      "name": "fridge",
+      "type": "fridge",
       "center": [
-        6239.94,
-        31743.72
+        5150.24,
+        31732.19
       ],
       "angle": 119.994,
       "size": [
-        1000.0,
-        400.0
+        1220.0,
+        1330.0
       ],
-      "wall_contacts": 1
-    },
-    {
-      "name": "shelf-2",
-      "type": "shelf",
-      "center": [
-        5740.02,
-        32609.79
-      ],
-      "angle": 119.994,
-      "size": [
-        1000.0,
-        400.0
-      ],
-      "wall_contacts": 1
-    },
-    {
-      "name": "shelf-3",
-      "type": "shelf",
-      "center": [
-        5893.5,
-        31543.75
-      ],
-      "angle": 119.994,
-      "size": [
-        1000.0,
-        400.0
-      ],
-      "wall_contacts": 0
-    },
-    {
-      "name": "overShelf-1",
-      "type": "overShelf",
-      "center": [
-        5493.58,
-        32236.61
-      ],
-      "angle": 119.994,
-      "size": [
-        600.0,
-        400.0
-      ],
-      "wall_contacts": 0
-    },
-    {
-      "name": "overShelf-2",
-      "type": "overShelf",
-      "center": [
-        5157.01,
-        32619.66
-      ],
-      "angle": 29.994,
-      "size": [
-        600.0,
-        400.0
-      ],
-      "wall_contacts": 0
-    },
-    {
-      "name": "overShelf-3",
-      "type": "overShelf",
-      "center": [
-        5147.14,
-        32036.65
-      ],
-      "angle": 119.994,
-      "size": [
-        600.0,
-        400.0
-      ],
-      "wall_contacts": 0
+      "wall_contacts": 0,
+      "fridge_opening_side": "right",
+      "facing_aisle": true
     }
   ]
 }

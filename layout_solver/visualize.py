@@ -72,6 +72,19 @@ def render_png(scene: Scene, sol: Solution, path: str,
     for a, b in zip(poly_px, poly_px[1:] + poly_px[:1]):
         d.line([a, b], fill=(40, 40, 40), width=3)
 
+    # 动线通道（先画，压在物品下面）
+    for b in scene.aisle_band:
+        pts = [tx(c) for c in b.corners()]
+        d.polygon(pts, fill=(226, 240, 250))
+    if len(scene.aisle_poly) >= 2:
+        ap = [tx(p) for p in scene.aisle_poly]
+        d.line(ap, fill=(60, 130, 200), width=3, joint="curve")
+        for p, q in zip(ap, ap[1:]):
+            _arrow(d, p, q, (60, 130, 200))
+        mx, my = ap[len(ap) // 2]
+        d.text((mx, my - 12), f"AISLE {scene.aisle_width:.0f}", fill=(40, 110, 180),
+               font=f_small, anchor="mm")
+
     # 内开门 N×N 禁放区
     for rz in scene.reserved:
         pts = [tx(c) for c in rz.corners()]
@@ -81,11 +94,16 @@ def render_png(scene: Scene, sol: Solution, path: str,
         cx, cy = tx((rz.cx, rz.cy))
         d.text((cx, cy), "door swing N x N", fill=(170, 100, 20), font=f_small, anchor="mm")
 
-    # 门
-    da, db = tx(scene.door[0]), tx(scene.door[1])
-    d.line([da, db], fill=(214, 40, 40), width=7)
-    mid = ((da[0] + db[0]) / 2, (da[1] + db[1]) / 2)
-    d.text((mid[0], mid[1] - 14), "DOOR", fill=(214, 40, 40), font=f_big, anchor="mm")
+    # 门：入口绿 / 出口蓝 / 兼用红
+    for door in scene.doors:
+        da, db = tx(door.points[0]), tx(door.points[1])
+        color = {"enter": (30, 150, 90), "exit": (60, 110, 200)}.get(door.role, (214, 40, 40))
+        d.line([da, db], fill=color, width=7)
+        mid = ((da[0] + db[0]) / 2, (da[1] + db[1]) / 2)
+        label = {"enter": "ENTER", "exit": "EXIT"}.get(door.role, "DOOR")
+        if door.is_open_inward:
+            label += " (inward)"
+        d.text((mid[0], mid[1] - 14), label, fill=color, font=f_big, anchor="mm")
 
     # 物品
     for p in sol.placements:
@@ -128,12 +146,26 @@ def render_png(scene: Scene, sol: Solution, path: str,
         d.text((cur + 20, ly + 1), kind, fill=(40, 40, 40), font=f_small)
         cur += 22 + 8 * len(kind) + 16
     d.text((pad, ly + 26),
-           "red = door (kept clear)   orange = inward door swing area   green = fridge opening side",
+           "green = ENTER   blue = EXIT   red = door (kept clear)   "
+           "orange = inward door swing N x N   light blue = aisle   dark green = fridge opening side",
            fill=(90, 90, 90), font=f_small)
 
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
     img.save(path)
     return path
+
+
+def _arrow(draw, p, q, color, size: int = 9) -> None:
+    """在段中点画一个小箭头，表示行进方向。"""
+    import math
+    mx, my = (p[0] + q[0]) / 2, (p[1] + q[1]) / 2
+    ang = math.atan2(q[1] - p[1], q[0] - p[0])
+    a1 = ang + math.radians(150)
+    a2 = ang - math.radians(150)
+    draw.line([(mx, my), (mx + size * math.cos(a1), my + size * math.sin(a1))],
+              fill=color, width=2)
+    draw.line([(mx, my), (mx + size * math.cos(a2), my + size * math.sin(a2))],
+              fill=color, width=2)
 
 
 def _dashed_line(draw, a, b, color, width: int = 2, dash: int = 8, gap: int = 6) -> None:

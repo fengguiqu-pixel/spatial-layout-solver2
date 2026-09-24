@@ -54,13 +54,18 @@ def verify(scene: Scene, sol: Solution) -> List[str]:
             if pen:
                 issues.append(f"{a.item.name} 与 {b.item.name} 重叠")
 
-    # 4. 不挡门 / 不占内开门扇形区
+    # 4. 不挡门 / 不占内开门区 / 不压动线
     for p in sol.placements:
-        if segment_intersects_rect(scene.door[0], scene.door[1], p.obb, -STRICT_TOL):
-            issues.append(f"{p.item.name} 遮挡门洞")
+        for d in scene.doors:
+            if segment_intersects_rect(d.points[0], d.points[1], p.obb, -STRICT_TOL):
+                issues.append(f"{p.item.name} 遮挡门洞 {d.role}")
         for rz in scene.reserved:
             if obb_overlap(p.obb, rz, STRICT_TOL):
                 issues.append(f"{p.item.name} 占用内开门 N×N 区域")
+        for b in scene.aisle_band:
+            if obb_overlap(p.obb, b, STRICT_TOL):
+                issues.append(f"{p.item.name} 压到人行通道（宽 {scene.aisle_width:.0f}）")
+                break
 
     # 5. 冰箱开门边朝室内、且没有东西贴上去
     for p in sol.placements:
@@ -90,16 +95,23 @@ def report(scene: Scene, sol: Solution) -> str:
     lines.append(f"    空间: 房间 {m['room_area']:,.0f}  物品占地 {m['items_area']:,.0f}  "
                  f"利用率 {m['utilization'] * 100:.1f}%  "
                  f"剩余可用 {m['free_area']:,.0f} ({m['free_ratio'] * 100:.1f}%)  "
+                 f"墙边利用 {m['wall_usage'] * 100:.0f}%  "
                  f"可贴墙长 {m['usable_wall_length']:,.0f}"
                  + (f"  禁放区 {m['reserved_area']:,.0f}" if m["reserved_area"] else ""))
+    if m["aisle_length"] > 0:
+        lines.append(f"    动线: 长 {m['aisle_length']:,.0f} 宽 {m['aisle_width']:,.0f}  "
+                     f"门 {len(scene.doors)} 个({'/'.join(d.role for d in scene.doors)})  "
+                     f"临通道物品 {m['aisle_facing']}/{len(sol.placements)}")
     for p in sol.placements:
         extra = f"  开门边={p.open_side}" if p.open_side else ""
         lines.append(f"    {p.item.name:<12} center=({p.obb.cx:,.1f}, {p.obb.cy:,.1f})  "
                      f"angle={p.angle:.2f}°  贴墙面={p.wall_contacts}{extra}")
-    if sol.reason:
+    if sol.reason and not sol.feasible:
         lines.append(f"    判定不可行：{sol.reason}")
         lines.append(f"    未放下: {sol.unplaced}")
         return "\n".join(lines)
+    if sol.reason and sol.feasible:
+        lines.append(f"    说明：{sol.reason}")
     if sol.unplaced:
         lines.append(f"    未放下: {sol.unplaced}")
     if issues:

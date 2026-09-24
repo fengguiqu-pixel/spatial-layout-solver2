@@ -18,7 +18,7 @@
     "overShelf-4"
   ],
   "reason": "搜索预算内没找到可行解：物品需求面积 4,182,600，可用面积 4,480,000，需求密度 93%",
-  "elapsed_sec": 17.582,
+  "elapsed_sec": 7.531,
   "metrics": {
     "room_area": 4840000.0,
     "items_area": 4182600.0,
@@ -31,6 +31,12 @@
     "reserved_area": 360000.0,
     "usable_wall_length": 8800.0,
     "wall_area_ratio": 0.0,
+    "wall_covered_length": 0,
+    "wall_usage": 0.0,
+    "aisle_length": 0,
+    "aisle_width": 0.0,
+    "aisle_facing": 0,
+    "doors": 1,
     "floating": 0
   },
   "placements": []
