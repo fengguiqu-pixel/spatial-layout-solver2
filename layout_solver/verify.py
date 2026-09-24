@@ -11,7 +11,7 @@ from . import config as cfg
 from .geometry import (obb_overlap, rect_inside_polygon, rotate_point, segment_intersects_rect,
                        vdist)
 from .scene import Scene
-from .solver import Placement, Solution
+from .solver import Placement, Solution, compute_metrics
 
 # 严格复核时的穿透容差：10 微米，既能挡住真实重叠，又不会把"紧贴摆放"误判成重叠
 STRICT_TOL = 0.01
@@ -36,8 +36,8 @@ def verify(scene: Scene, sol: Solution) -> List[str]:
     issues: List[str] = []
     poly = scene.polygon
 
-    # 1. 是否全部放下
-    if len(sol.placements) != len(scene.items):
+    # 1. 是否全部放下（预检已判定不可行的不再重复报）
+    if len(sol.placements) != len(scene.items) and not sol.reason:
         missing = {it.name for it in scene.items} - {p.item.name for p in sol.placements}
         issues.append(f"未放下的物品: {sorted(missing)}")
 
@@ -81,15 +81,25 @@ def verify(scene: Scene, sol: Solution) -> List[str]:
 def report(scene: Scene, sol: Solution) -> str:
     lines: List[str] = []
     issues = verify(scene, sol)
+    m = compute_metrics(scene, sol)
     lines.append(f"[{scene.name}] feasible={sol.feasible}  "
                  f"朝向={sol.frame_angle:.2f}°  "
                  f"贴墙={sol.wall_contact_count}/{len(scene.items)}  "
                  f"悬空={sol.floating_count}  "
                  f"耗时={sol.elapsed:.2f}s")
+    lines.append(f"    空间: 房间 {m['room_area']:,.0f}  物品占地 {m['items_area']:,.0f}  "
+                 f"利用率 {m['utilization'] * 100:.1f}%  "
+                 f"剩余可用 {m['free_area']:,.0f} ({m['free_ratio'] * 100:.1f}%)  "
+                 f"可贴墙长 {m['usable_wall_length']:,.0f}"
+                 + (f"  禁放区 {m['reserved_area']:,.0f}" if m["reserved_area"] else ""))
     for p in sol.placements:
         extra = f"  开门边={p.open_side}" if p.open_side else ""
         lines.append(f"    {p.item.name:<12} center=({p.obb.cx:,.1f}, {p.obb.cy:,.1f})  "
                      f"angle={p.angle:.2f}°  贴墙面={p.wall_contacts}{extra}")
+    if sol.reason:
+        lines.append(f"    判定不可行：{sol.reason}")
+        lines.append(f"    未放下: {sol.unplaced}")
+        return "\n".join(lines)
     if sol.unplaced:
         lines.append(f"    未放下: {sol.unplaced}")
     if issues:

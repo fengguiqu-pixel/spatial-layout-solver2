@@ -35,9 +35,14 @@ MAX_BRANCH = 10
 # 单个朝向下的最大搜索节点数
 NODE_BUDGET = 3000
 # 单个朝向下的时间预算（秒）
-TIME_BUDGET = 15.0
+TIME_BUDGET = 10.0
 # 朝向聚类容差（度）
 FRAME_CLUSTER_TOL = 1.0
 # 朝向"吸附"容差：算出来的朝向离 0/90° 很近时直接吸附到正交，输出角度好看，
 # 几何上只会带来亚毫米级偏差
 FRAME_SNAP_TOL = 0.05
+# 紧凑模式：False = 贴墙优先（题目默认口径）；True = 物品尽量往一起挤，
+# 让剩余空地更完整（命令行 --compact 开启，用于和贴墙模式做对比）
+COMPACT_MODE = False
+# 估算剩余空地时的栅格采样格数（越多越准越慢）
+GRID_CELLS = 40000

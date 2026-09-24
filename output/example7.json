@@ -1,0 +1,37 @@
+{
+  "feasible": false,
+  "frame_angle": 0.0,
+  "items_total": 9,
+  "items_placed": 0,
+  "wall_hugging": "0/9",
+  "wall_area_ratio": 0.0,
+  "floating": 0,
+  "unplaced": [
+    "fridge",
+    "shelf-1",
+    "shelf-2",
+    "shelf-3",
+    "shelf-4",
+    "overShelf-1",
+    "overShelf-2",
+    "overShelf-3",
+    "overShelf-4"
+  ],
+  "reason": "搜索预算内没找到可行解：物品需求面积 4,182,600，可用面积 4,480,000，需求密度 93%",
+  "elapsed_sec": 17.582,
+  "metrics": {
+    "room_area": 4840000.0,
+    "items_area": 4182600.0,
+    "utilization": 0.8642,
+    "demand_ratio": 0.9336,
+    "free_area": 4480630.0,
+    "free_ratio": 0.9257,
+    "largest_free_area": 4480630.0,
+    "free_fragments": 1,
+    "reserved_area": 360000.0,
+    "usable_wall_length": 8800.0,
+    "wall_area_ratio": 0.0,
+    "floating": 0
+  },
+  "placements": []
+}

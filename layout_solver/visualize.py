@@ -9,7 +9,7 @@ import os
 from typing import Dict, List, Optional, Tuple
 
 from .scene import Scene
-from .solver import Solution
+from .solver import Solution, compute_metrics
 from .verify import _opening_edge_world
 
 try:
@@ -109,9 +109,12 @@ def render_png(scene: Scene, sol: Solution, path: str,
             d.text((mx, my), "  opening side", fill=(20, 140, 90), font=f_small, anchor="lm")
 
     # 标题
+    m = compute_metrics(scene, sol)
     title = (f"{scene.name}   feasible={sol.feasible}   "
              f"frame={sol.frame_angle:.2f}deg   "
-             f"wall-hugging={sol.wall_contact_count}/{len(scene.items)}")
+             f"wall-hugging={sol.wall_contact_count}/{len(scene.items)}   "
+             f"utilization={m['utilization'] * 100:.1f}%   "
+             f"free={m['free_area']:,.0f} (largest block {m['largest_free_area']:,.0f})")
     d.text((pad, 14), title, fill=(20, 20, 20), font=f_big)
 
     # 图例

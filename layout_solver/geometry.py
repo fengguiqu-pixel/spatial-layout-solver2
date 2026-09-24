@@ -161,6 +161,17 @@ def signed_area(poly: Sequence[Point]) -> float:
     return 0.5 * sum(vcross(a, b) for a, b in polygon_edges(poly))
 
 
+def polygon_area(poly: Sequence[Point]) -> float:
+    """轮廓面积（取绝对值，与顶点绕向无关）。"""
+    return abs(signed_area(poly))
+
+
+def polygon_bbox(poly: Sequence[Point]) -> Tuple[float, float, float, float]:
+    xs = [p[0] for p in poly]
+    ys = [p[1] for p in poly]
+    return min(xs), min(ys), max(xs), max(ys)
+
+
 def clean_polygon(pts: Sequence[Point], tol: float = 1e-6) -> List[Point]:
     """去掉重复点、闭合点；不改动顶点顺序（顺序对奇偶规则不重要）。"""
     out: List[Point] = []

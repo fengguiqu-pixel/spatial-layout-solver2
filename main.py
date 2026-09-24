@@ -59,13 +59,23 @@ def main(argv=None) -> int:
     ap.add_argument("--door-clearance", type=float, default=None,
                     help=f"门洞前额外禁放深度（默认 {cfg.DOOR_CLEARANCE_DEPTH}）")
     ap.add_argument("--no-png", action="store_true", help="不生成 PNG，只输出 JSON")
+    ap.add_argument("--compact", action="store_true",
+                    help="紧凑模式：物品往一起挤，让剩余空地连成整块（与默认贴墙模式对比用）")
+    ap.add_argument("--grid-cells", type=int, default=None,
+                    help="估算剩余空地的栅格采样格数（默认 40000，越大越准越慢）")
     args = ap.parse_args(argv)
+    if args.compact:
+        cfg.COMPACT_MODE = True
+    if args.grid_cells:
+        cfg.GRID_CELLS = args.grid_cells
 
     inputs = collect_inputs(args.input)
     if not inputs:
         print(f"没找到输入文件: {args.input}")
         return 1
 
+    mode = "紧凑模式" if cfg.COMPACT_MODE else "贴墙模式"
+    print(f"运行模式: {mode}   空地采样格数: {cfg.GRID_CELLS}")
     for path in inputs:
         run_one(path, args.output, args.door_clearance, not args.no_png)
     return 0

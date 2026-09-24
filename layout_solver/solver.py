@@ -31,9 +31,9 @@ from typing import Dict, List, Optional, Sequence, Tuple
 
 from . import config as cfg
 from .geometry import (OBB, Point, Rect, edge_angle_deg, norm_angle_180, obb_edge_contact_length,
-                       obb_overlap, point_in_polygon, polygon_edges, ray_distance_to_boundary,
-                       rect_inside_polygon, rect_rect_contact, rotate_point, segment_intersects_rect,
-                       vadd, vdist, vmul, vsub, vunit)
+                       obb_overlap, point_in_polygon, polygon_area, polygon_bbox, polygon_edges,
+                       ray_distance_to_boundary, rect_inside_polygon, rect_rect_contact,
+                       rotate_point, segment_intersects_rect, vadd, vdist, vmul, vsub, vunit)
 from .scene import Item, Scene
 
 
@@ -82,6 +82,7 @@ class Solution:
     unplaced: List[str] = field(default_factory=list)
     elapsed: float = 0.0
     nodes: int = 0
+    reason: str = ""          # 判定不可行时给的原因（快速预检命中时才有）
 
     @property
     def total_wall_contact(self) -> float:
@@ -103,6 +104,23 @@ class Solution:
     def floating_count(self) -> int:
         """既没贴墙也没贴任何已放物品的物品数量（正常应为 0）。"""
         return sum(1 for p in self.placements if p.wall_contacts == 0 and p.item_contacts == 0)
+
+
+def _spread(sol: "Solution") -> float:
+    """物品中心点到它们质心的平均距离：越小说明摆得越集中（剩余空地更容易连成整块）。"""
+    if len(sol.placements) < 2:
+        return 0.0
+    n = len(sol.placements)
+    cx = sum(p.obb.cx for p in sol.placements) / n
+    cy = sum(p.obb.cy for p in sol.placements) / n
+    return sum(math.hypot(p.obb.cx - cx, p.obb.cy - cy) for p in sol.placements) / n
+
+
+def _rank_key(sol: "Solution") -> Tuple:
+    """方案排序键（越大越好）。贴墙模式看贴墙率，紧凑模式看集中度。"""
+    if cfg.COMPACT_MODE:
+        return (-_spread(sol), sol.wall_area_ratio, sol.wall_contact_count, sol.total_wall_contact)
+    return (sol.wall_area_ratio, sol.wall_contact_count, sol.total_wall_contact)
 
 
 class _Budget:
@@ -332,6 +350,9 @@ def _score(frame: Frame, rect: Rect, placed: Sequence[Rect]) -> Tuple[float, flo
         dist = math.hypot(rect.center[0] - cx, rect.center[1] - cy)
     else:
         dist = 0.0
+    if cfg.COMPACT_MODE:
+        # 紧凑模式：同一贴合级别里，"离已放物品群越近"优先于"接触越长"，让物品往一起挤
+        return (penalty, dist, -(wall_len + 0.5 * item_len))
     return (penalty, -(wall_len + 0.5 * item_len), dist)
 
 
@@ -485,26 +506,51 @@ def _solve_frame(scene: Scene, angle: float, extra_reserved: Sequence[OBB] = ())
     # 第一轮：不允许悬空（必须贴墙或贴已放物品）—— 对应题目"优先考虑贴墙"
     # 第二轮：放不下再放宽。每个顺序单独计时，避免某一次搜索把预算烧光
     for allow_floating in (False, True):
-        for order in orders:
+        # 放宽阶段只试前两个顺序：第一遍都失败说明是硬骨头，多试一个顺序收益很低
+        for order in (orders if not allow_floating else orders[:2]):
             seconds = cfg.TIME_BUDGET * (0.25 if not allow_floating else 0.5)
             budget = _Budget(cfg.NODE_BUDGET, seconds)
             res = _dfs(frame, order, 0, [], reserved_rects(frame), [], budget, allow_floating)
             nodes += budget.nodes
             if res:
                 sol = Solution(feasible=True, frame_angle=angle, placements=res, nodes=nodes)
-                key = (sol.wall_area_ratio, sol.wall_contact_count, sol.total_wall_contact)
-                best_key = None if best is None else (
-                    best.wall_area_ratio, best.wall_contact_count, best.total_wall_contact)
-                if best is None or key > best_key:
+                if best is None or _rank_key(sol) > _rank_key(best):
                     best = sol
         if best is not None:
             break
     return best
 
 
+def quick_infeasibility(scene: Scene) -> str:
+    """秒级的不可行预检，避免在注定放不下的输入上白白烧搜索预算。
+
+    只做必要条件判断（面积 / 尺寸），判不出来就返回空串交给搜索去试。
+    """
+    room = polygon_area(scene.polygon)
+    reserved = sum(r.area() for r in scene.reserved)
+    need = sum(it.area for it in scene.items)
+    if need > room - reserved + 1e-6:
+        return (f"面积不够：物品占地合计 {need:,.0f} > 可用面积 {room - reserved:,.0f} "
+                f"(房间 {room:,.0f} - 禁放区 {reserved:,.0f})")
+    x0, y0, x1, y1 = polygon_bbox(scene.polygon)
+    bw, bh = x1 - x0, y1 - y0
+    for it in scene.items:
+        if min(it.length, it.width) > min(bw, bh) + 1e-6:
+            return (f"{it.name} 的最小边 {min(it.length, it.width):,.0f} "
+                    f"超过房间最窄处 {min(bw, bh):,.0f}")
+    return ""
+
+
 def solve(scene: Scene, door_clearance: Optional[float] = None) -> Solution:
     """求解一个场景。返回 Solution（feasible=False 表示放不下）。"""
     t0 = time.time()
+
+    # 先做秒级预检：命中就不用搜索了
+    reason = quick_infeasibility(scene)
+    if reason:
+        return Solution(feasible=False, frame_angle=0.0,
+                        unplaced=[it.name for it in scene.items],
+                        elapsed=time.time() - t0, reason=reason)
     extra: List[OBB] = []
     depth = cfg.DOOR_CLEARANCE_DEPTH if door_clearance is None else door_clearance
     if depth > 0:
@@ -519,16 +565,139 @@ def solve(scene: Scene, door_clearance: Optional[float] = None) -> Solution:
     for ang in frames:
         sol = _solve_frame(scene, ang, extra)
         if sol is not None and sol.feasible:
-            key = (sol.wall_area_ratio, sol.wall_contact_count, sol.total_wall_contact)
-            best_key = None if best is None else (
-                best.wall_area_ratio, best.wall_contact_count, best.total_wall_contact)
-            if best is None or key > best_key:
+            if best is None or _rank_key(sol) > _rank_key(best):
                 best = sol
     if best is None:
+        room = polygon_area(scene.polygon)
+        reserved = sum(r.area() for r in scene.reserved) + sum(r.area() for r in extra)
+        need = sum(it.area for it in scene.items)
+        usable = max(room - reserved, 1.0)
         return Solution(feasible=False, frame_angle=frames[0] if frames else 0.0,
-                        unplaced=[it.name for it in scene.items], elapsed=time.time() - t0)
+                        unplaced=[it.name for it in scene.items], elapsed=time.time() - t0,
+                        reason=(f"搜索预算内没找到可行解：物品需求面积 {need:,.0f}，"
+                                f"可用面积 {usable:,.0f}，需求密度 {need / usable * 100:.0f}%"))
     best.elapsed = time.time() - t0
     return best
+
+
+# ---------------------------------------------------------------------------
+# 空间利用率等指标
+# ---------------------------------------------------------------------------
+def usable_wall_length(scene: Scene, frame_angle: float) -> float:
+    """该朝向下真正可以贴的墙的总长度（与朝向平行或垂直的边）。"""
+    total = 0.0
+    for a, b in polygon_edges(scene.polygon):
+        L = vdist(a, b)
+        if L < 1.0:
+            continue
+        d = abs((edge_angle_deg(a, b) - frame_angle) % 90.0)
+        if min(d, 90.0 - d) <= cfg.FRAME_CLUSTER_TOL:
+            total += L
+    return total
+
+
+def free_space_grid(scene: Scene, sol: Solution, target_cells: int = None):
+    """把地面打成栅格，标出哪些格子是空的。
+
+    返回 (grid, n, m, cell_area)，grid 为一维 list，True 表示"在轮廓内且没被占用"。
+    顺带做一次连通域分析，这样能区分"一大块完整空地"和"到处都是碎片"——
+    后者面积虽大却没法利用，这也是判断摆放好坏的关键。
+    """
+    if target_cells is None:
+        target_cells = cfg.GRID_CELLS
+    x0, y0, x1, y1 = polygon_bbox(scene.polygon)
+    w, h = x1 - x0, y1 - y0
+    if w <= 0 or h <= 0:
+        return [], 0, 0, 0.0
+    n = max(8, int(round(math.sqrt(target_cells * w / h))))
+    m = max(8, int(round(target_cells / n)))
+    cw, ch = w / n, h / m
+    cell = cw * ch
+
+    blocks = [p.obb for p in sol.placements] + list(scene.reserved)
+    corners = [o.corners() for o in blocks]
+    bb = []
+    for o in blocks:
+        r = max(o.hw, o.hh) * 1.5
+        bb.append((o.cx - r, o.cy - r, o.cx + r, o.cy + r))
+
+    grid = [False] * (n * m)
+    for i in range(n):
+        x = x0 + (i + 0.5) * cw
+        for j in range(m):
+            y = y0 + (j + 0.5) * ch
+            if point_in_polygon((x, y), scene.polygon, 1e-6) != 1:
+                continue
+            hit = False
+            for k in range(len(blocks)):
+                b0, b1, b2, b3 = bb[k]
+                if b0 <= x <= b2 and b1 <= y <= b3 and point_in_polygon((x, y), corners[k], 1e-6) >= 0:
+                    hit = True
+                    break
+            if not hit:
+                grid[i * m + j] = True
+    return grid, n, m, cell
+
+
+def _largest_free_block(grid, n, m, cell: float) -> Tuple[float, int]:
+    """连通域分析：返回 (最大一块空地面积, 空地碎片块数)。"""
+    seen = [False] * (n * m)
+    best = 0
+    blocks = 0
+    stack: List[int] = []
+    for start in range(n * m):
+        if not grid[start] or seen[start]:
+            continue
+        blocks += 1
+        size = 0
+        stack.append(start)
+        seen[start] = True
+        while stack:
+            idx = stack.pop()
+            size += 1
+            i, j = divmod(idx, m)
+            for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                ni, nj = i + di, j + dj
+                if 0 <= ni < n and 0 <= nj < m:
+                    nidx = ni * m + nj
+                    if grid[nidx] and not seen[nidx]:
+                        seen[nidx] = True
+                        stack.append(nidx)
+        best = max(best, size)
+    return best * cell, blocks
+
+
+def estimate_free_area(scene: Scene, sol: Solution, target_cells: int = None) -> float:
+    """栅格采样估算"还没被占用的地面面积"（不含禁放区）。"""
+    grid, n, m, cell = free_space_grid(scene, sol, target_cells)
+    return sum(1 for v in grid if v) * cell
+
+
+def compute_metrics(scene: Scene, sol: Solution) -> Dict:
+    room = polygon_area(scene.polygon)
+    used = sum(p.item.area for p in sol.placements)
+    if not sol.placements:
+        used = sum(it.area for it in scene.items)      # 一件都没放下时显示"需求面积"
+    reserved = sum(r.area() for r in scene.reserved)
+    grid, n, m, cell = free_space_grid(scene, sol)
+    free = sum(1 for v in grid if v) * cell
+    biggest, fragments = _largest_free_block(grid, n, m, cell)
+    wall = usable_wall_length(scene, sol.frame_angle)
+    usable = room - reserved
+    return {
+        "room_area": round(room, 1),
+        "items_area": round(used, 1),
+        "utilization": round(used / room, 4) if room > 0 else 0.0,
+        "demand_ratio": round(used / usable, 4) if usable > 0 else 0.0,
+        "free_area": round(free, 1),
+        "free_ratio": round(free / room, 4) if room > 0 else 0.0,
+        "largest_free_area": round(biggest, 1),
+        "free_fragments": fragments,
+        "reserved_area": round(reserved, 1),
+        "usable_wall_length": round(wall, 1),
+        "wall_area_ratio": round(sol.wall_area_ratio, 4),
+        "floating": sol.floating_count,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -557,6 +726,8 @@ def solution_to_dict(scene: Scene, sol: Solution) -> Dict:
         "wall_area_ratio": round(sol.wall_area_ratio, 3),
         "floating": sol.floating_count,
         "unplaced": sol.unplaced,
+        "reason": sol.reason,
         "elapsed_sec": round(sol.elapsed, 3),
+        "metrics": compute_metrics(scene, sol),
         "placements": items,
     }

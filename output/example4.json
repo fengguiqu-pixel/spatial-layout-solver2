@@ -7,7 +7,22 @@
   "wall_area_ratio": 1.0,
   "floating": 0,
   "unplaced": [],
-  "elapsed_sec": 2.335,
+  "reason": "",
+  "elapsed_sec": 1.023,
+  "metrics": {
+    "room_area": 6572952.2,
+    "items_area": 3142600.0,
+    "utilization": 0.4781,
+    "demand_ratio": 0.4781,
+    "free_area": 3533160.3,
+    "free_ratio": 0.5375,
+    "largest_free_area": 3533160.3,
+    "free_fragments": 1,
+    "reserved_area": 0,
+    "usable_wall_length": 15941.0,
+    "wall_area_ratio": 1.0,
+    "floating": 0
+  },
   "placements": [
     {
       "name": "fridge",
