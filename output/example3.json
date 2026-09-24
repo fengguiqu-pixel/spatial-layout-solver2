@@ -1,0 +1,140 @@
+{
+  "feasible": true,
+  "frame_angle": 0.0,
+  "items_total": 9,
+  "items_placed": 9,
+  "wall_hugging": "9/9",
+  "wall_area_ratio": 1.0,
+  "floating": 0,
+  "unplaced": [],
+  "elapsed_sec": 5.604,
+  "placements": [
+    {
+      "name": "fridge",
+      "type": "fridge",
+      "center": [
+        56508.31,
+        36488.11
+      ],
+      "angle": 0.0,
+      "size": [
+        1220.0,
+        1330.0
+      ],
+      "wall_contacts": 2,
+      "fridge_opening_side": "bottom"
+    },
+    {
+      "name": "shelf-1",
+      "type": "shelf",
+      "center": [
+        56798.31,
+        37353.11
+      ],
+      "angle": 0.0,
+      "size": [
+        1000.0,
+        400.0
+      ],
+      "wall_contacts": 2
+    },
+    {
+      "name": "shelf-2",
+      "type": "shelf",
+      "center": [
+        56898.31,
+        29983.11
+      ],
+      "angle": 90.0,
+      "size": [
+        1000.0,
+        400.0
+      ],
+      "wall_contacts": 2
+    },
+    {
+      "name": "shelf-3",
+      "type": "shelf",
+      "center": [
+        56098.31,
+        29983.11
+      ],
+      "angle": 90.0,
+      "size": [
+        1000.0,
+        400.0
+      ],
+      "wall_contacts": 2
+    },
+    {
+      "name": "shelf-4",
+      "type": "shelf",
+      "center": [
+        56898.31,
+        33447.05
+      ],
+      "angle": 90.0,
+      "size": [
+        1000.0,
+        400.0
+      ],
+      "wall_contacts": 1
+    },
+    {
+      "name": "shelf-5",
+      "type": "shelf",
+      "center": [
+        56098.31,
+        33447.05
+      ],
+      "angle": 90.0,
+      "size": [
+        1000.0,
+        400.0
+      ],
+      "wall_contacts": 1
+    },
+    {
+      "name": "overShelf-1",
+      "type": "overShelf",
+      "center": [
+        57748.31,
+        35653.11
+      ],
+      "angle": 0.0,
+      "size": [
+        600.0,
+        400.0
+      ],
+      "wall_contacts": 2
+    },
+    {
+      "name": "overShelf-2",
+      "type": "overShelf",
+      "center": [
+        57848.31,
+        37253.11
+      ],
+      "angle": 90.0,
+      "size": [
+        600.0,
+        400.0
+      ],
+      "wall_contacts": 2
+    },
+    {
+      "name": "overShelf-3",
+      "type": "overShelf",
+      "center": [
+        56898.31,
+        34385.96
+      ],
+      "angle": 90.0,
+      "size": [
+        600.0,
+        400.0
+      ],
+      "wall_contacts": 1
+    }
+  ]
+}

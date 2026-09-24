@@ -1,0 +1,126 @@
+{
+  "feasible": true,
+  "frame_angle": 0.0,
+  "items_total": 8,
+  "items_placed": 8,
+  "wall_hugging": "4/8",
+  "wall_area_ratio": 0.733,
+  "floating": 0,
+  "unplaced": [],
+  "elapsed_sec": 2.753,
+  "placements": [
+    {
+      "name": "fridge",
+      "type": "fridge",
+      "center": [
+        6511.74,
+        29407.38
+      ],
+      "angle": 0.0,
+      "size": [
+        1220.0,
+        1330.0
+      ],
+      "wall_contacts": 2,
+      "fridge_opening_side": "top"
+    },
+    {
+      "name": "iceMaker",
+      "type": "iceMaker",
+      "center": [
+        6741.74,
+        30567.07
+      ],
+      "angle": 0.0,
+      "size": [
+        760.0,
+        850.0
+      ],
+      "wall_contacts": 1
+    },
+    {
+      "name": "shelf-1",
+      "type": "shelf",
+      "center": [
+        6621.74,
+        31265.93
+      ],
+      "angle": 0.0,
+      "size": [
+        1000.0,
+        400.0
+      ],
+      "wall_contacts": 1
+    },
+    {
+      "name": "shelf-2",
+      "type": "shelf",
+      "center": [
+        6401.74,
+        31665.93
+      ],
+      "angle": 0.0,
+      "size": [
+        1000.0,
+        400.0
+      ],
+      "wall_contacts": 0
+    },
+    {
+      "name": "shelf-3",
+      "type": "shelf",
+      "center": [
+        6251.74,
+        32365.93
+      ],
+      "angle": 90.0,
+      "size": [
+        1000.0,
+        400.0
+      ],
+      "wall_contacts": 1
+    },
+    {
+      "name": "overShelf-1",
+      "type": "overShelf",
+      "center": [
+        6651.74,
+        32165.93
+      ],
+      "angle": 90.0,
+      "size": [
+        600.0,
+        400.0
+      ],
+      "wall_contacts": 0
+    },
+    {
+      "name": "overShelf-2",
+      "type": "overShelf",
+      "center": [
+        6751.74,
+        32665.93
+      ],
+      "angle": 0.0,
+      "size": [
+        600.0,
+        400.0
+      ],
+      "wall_contacts": 0
+    },
+    {
+      "name": "overShelf-3",
+      "type": "overShelf",
+      "center": [
+        6161.74,
+        30765.93
+      ],
+      "angle": 90.0,
+      "size": [
+        600.0,
+        400.0
+      ],
+      "wall_contacts": 0
+    }
+  ]
+}

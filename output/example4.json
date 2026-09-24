@@ -1,0 +1,98 @@
+{
+  "feasible": true,
+  "frame_angle": 0.0,
+  "items_total": 6,
+  "items_placed": 6,
+  "wall_hugging": "6/6",
+  "wall_area_ratio": 1.0,
+  "floating": 0,
+  "unplaced": [],
+  "elapsed_sec": 2.335,
+  "placements": [
+    {
+      "name": "fridge",
+      "type": "fridge",
+      "center": [
+        183483.59,
+        32437.72
+      ],
+      "angle": 0.0,
+      "size": [
+        1220.0,
+        1330.0
+      ],
+      "wall_contacts": 2,
+      "fridge_opening_side": "bottom"
+    },
+    {
+      "name": "shelf-1",
+      "type": "shelf",
+      "center": [
+        183073.59,
+        30042.72
+      ],
+      "angle": 90.0,
+      "size": [
+        1000.0,
+        400.0
+      ],
+      "wall_contacts": 4
+    },
+    {
+      "name": "shelf-2",
+      "type": "shelf",
+      "center": [
+        184573.59,
+        30142.72
+      ],
+      "angle": 90.0,
+      "size": [
+        1000.0,
+        400.0
+      ],
+      "wall_contacts": 4
+    },
+    {
+      "name": "overShelf-1",
+      "type": "overShelf",
+      "center": [
+        184173.59,
+        30242.72
+      ],
+      "angle": 90.0,
+      "size": [
+        600.0,
+        400.0
+      ],
+      "wall_contacts": 2
+    },
+    {
+      "name": "overShelf-2",
+      "type": "overShelf",
+      "center": [
+        184073.59,
+        29742.72
+      ],
+      "angle": 0.0,
+      "size": [
+        600.0,
+        400.0
+      ],
+      "wall_contacts": 2
+    },
+    {
+      "name": "overShelf-3",
+      "type": "overShelf",
+      "center": [
+        184473.59,
+        30842.72
+      ],
+      "angle": 0.0,
+      "size": [
+        600.0,
+        400.0
+      ],
+      "wall_contacts": 2
+    }
+  ]
+}
