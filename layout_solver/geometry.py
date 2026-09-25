@@ -218,17 +218,41 @@ def _orient(a: Point, b: Point, c: Point) -> float:
     return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
 
 
-def segments_properly_cross(a: Point, b: Point, c: Point, d: Point, eps: float = 1e-9) -> bool:
+# 矩形边相对旋转后多边形边的"贴边"容差（mm）。
+# 贴墙摆放时 gen_positions 把矩形边精确压在 wall.coord 上，但旋转后的多边形实际边
+# 有亚毫米级微斜，矩形竖边端点会高出多边形边约 1e-4 mm，被"穿边检查"误判为越界。
+# 允许矩形边在 EDGE_GRAZE_TOL 范围内贴着墙边，既消除该误判，又不让物品真正探出房间。
+EDGE_GRAZE_TOL = 0.1
+
+
+def segments_properly_cross(a: Point, b: Point, c: Point, d: Point, tol: float = 1e-9) -> bool:
     """两线段是否"穿透式"相交（交点在两者的内部）。
 
     共线重叠、端点接触都返回 False —— 贴墙摆放时矩形边与墙共线，必须放行。
+    tol 为允许的两线段"擦边"距离（按线段长度归一化的带符号距离，单位与坐标一致）：
+    若某端点落在对向线段所在直线 tol 范围内，视为接触而非穿透。
     """
-    d1 = _orient(a, b, c)
-    d2 = _orient(a, b, d)
-    d3 = _orient(c, d, a)
-    d4 = _orient(c, d, b)
-    return (((d1 > eps and d2 < -eps) or (d1 < -eps and d2 > eps))
-            and ((d3 > eps and d4 < -eps) or (d3 < -eps and d4 > eps)))
+    L2_cd = (d[0] - c[0]) ** 2 + (d[1] - c[1]) ** 2
+    if L2_cd < 1e-18:
+        return False
+    k_cd = 1.0 / (2.0 * L2_cd ** 0.5)
+    sa = _orient(c, d, a) * k_cd
+    sb = _orient(c, d, b) * k_cd
+    if abs(sa) <= tol and abs(sb) <= tol:
+        return False
+    if not ((sa > tol and sb < -tol) or (sa < -tol and sb > tol)):
+        return False
+    L2_ab = (b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2
+    if L2_ab < 1e-18:
+        return False
+    k_ab = 1.0 / (2.0 * L2_ab ** 0.5)
+    sc = _orient(a, b, c) * k_ab
+    sd = _orient(a, b, d) * k_ab
+    if abs(sc) <= tol and abs(sd) <= tol:
+        return False
+    if not ((sc > tol and sd < -tol) or (sc < -tol and sd > tol)):
+        return False
+    return True
 
 
 def rect_inside_polygon(obb: OBB, poly: Sequence[Point], tol: float = 1e-6) -> bool:
@@ -238,7 +262,7 @@ def rect_inside_polygon(obb: OBB, poly: Sequence[Point], tol: float = 1e-6) -> b
             return False
     for e in obb.edges():
         for pe in polygon_edges(poly):
-            if segments_properly_cross(e[0], e[1], pe[0], pe[1]):
+            if segments_properly_cross(e[0], e[1], pe[0], pe[1], EDGE_GRAZE_TOL):
                 return False
     return True
 

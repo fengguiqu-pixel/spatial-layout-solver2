@@ -11,7 +11,7 @@
     "fridge"
   ],
   "reason": "空间不足以保留 800 宽的通道，已取消通道约束；沿墙一排排不完，部分物品贴着第一排又放了一排",
-  "elapsed_sec": 19.373,
+  "elapsed_sec": 18.4,
   "metrics": {
     "room_area": 4840000.0,
     "items_area": 2560000.0,
