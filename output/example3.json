@@ -1,85 +1,86 @@
 {
-  "feasible": true,
+  "feasible": false,
   "frame_angle": 0.0,
   "ring_level": "wall",
   "items_total": 9,
-  "items_placed": 9,
-  "wall_hugging": "9/9",
+  "items_placed": 8,
+  "wall_hugging": "8/9",
   "wall_area_ratio": 1.0,
   "floating": 0,
-  "unplaced": [],
+  "unplaced": [
+    "fridge"
+  ],
   "reason": "空间不足以保留 800 宽的通道，已取消通道约束",
-  "elapsed_sec": 11.51,
+  "elapsed_sec": 12.3,
   "metrics": {
     "room_area": 11518999.2,
-    "items_area": 4342600.0,
-    "utilization": 0.377,
-    "demand_ratio": 0.4048,
-    "free_area": 6513761.0,
-    "largest_free_area": 6513761.0,
+    "items_area": 2720000.0,
+    "utilization": 0.2361,
+    "demand_ratio": 0.2535,
+    "free_area": 8119685.8,
+    "largest_free_area": 8119685.8,
     "free_fragments": 1,
     "reserved_area": 790000.0,
     "usable_wall_length": 20440.0,
-    "wall_covered_length": 9620.0,
-    "wall_usage": 0.4706,
+    "wall_covered_length": 8400.0,
+    "wall_usage": 0.411,
     "wall_area_ratio": 1.0,
     "aisle_width": 0.0,
     "core_dist": 0.0,
     "core_area": 0.0,
-    "facing_core": 9,
+    "facing_core": 8,
     "ring_level": "wall",
     "doors": 1,
     "floating": 0
   },
   "placements": [
     {
-      "name": "fridge",
-      "type": "fridge",
+      "name": "overShelf-1",
+      "type": "overShelf",
       "center": [
-        56563.31,
-        36543.11
+        56798.31,
+        29683.11
+      ],
+      "angle": 0.0,
+      "size": [
+        600.0,
+        400.0
+      ],
+      "wall_contacts": 2,
+      "ring_level": "wall"
+    },
+    {
+      "name": "overShelf-2",
+      "type": "overShelf",
+      "center": [
+        56198.31,
+        29683.11
+      ],
+      "angle": 0.0,
+      "size": [
+        600.0,
+        400.0
+      ],
+      "wall_contacts": 2,
+      "ring_level": "wall"
+    },
+    {
+      "name": "overShelf-3",
+      "type": "overShelf",
+      "center": [
+        56098.31,
+        36853.11
       ],
       "angle": 90.0,
       "size": [
-        1220.0,
-        1330.0
+        600.0,
+        400.0
       ],
       "wall_contacts": 2,
-      "fridge_opening_side": "right",
       "ring_level": "wall"
     },
     {
       "name": "shelf-1",
-      "type": "shelf",
-      "center": [
-        56898.31,
-        29983.11
-      ],
-      "angle": 90.0,
-      "size": [
-        1000.0,
-        400.0
-      ],
-      "wall_contacts": 2,
-      "ring_level": "wall"
-    },
-    {
-      "name": "shelf-2",
-      "type": "shelf",
-      "center": [
-        56098.31,
-        29983.11
-      ],
-      "angle": 90.0,
-      "size": [
-        1000.0,
-        400.0
-      ],
-      "wall_contacts": 2,
-      "ring_level": "wall"
-    },
-    {
-      "name": "shelf-3",
       "type": "shelf",
       "center": [
         56798.31,
@@ -94,11 +95,41 @@
       "ring_level": "wall"
     },
     {
+      "name": "shelf-2",
+      "type": "shelf",
+      "center": [
+        56098.31,
+        36053.11
+      ],
+      "angle": 90.0,
+      "size": [
+        1000.0,
+        400.0
+      ],
+      "wall_contacts": 1,
+      "ring_level": "wall"
+    },
+    {
+      "name": "shelf-3",
+      "type": "shelf",
+      "center": [
+        56098.31,
+        35053.11
+      ],
+      "angle": 90.0,
+      "size": [
+        1000.0,
+        400.0
+      ],
+      "wall_contacts": 1,
+      "ring_level": "wall"
+    },
+    {
       "name": "shelf-4",
       "type": "shelf",
       "center": [
         56098.31,
-        35433.11
+        34053.11
       ],
       "angle": 90.0,
       "size": [
@@ -113,56 +144,11 @@
       "type": "shelf",
       "center": [
         56098.31,
-        34433.11
+        33053.11
       ],
       "angle": 90.0,
       "size": [
         1000.0,
-        400.0
-      ],
-      "wall_contacts": 1,
-      "ring_level": "wall"
-    },
-    {
-      "name": "overShelf-1",
-      "type": "overShelf",
-      "center": [
-        56098.31,
-        33633.11
-      ],
-      "angle": 90.0,
-      "size": [
-        600.0,
-        400.0
-      ],
-      "wall_contacts": 1,
-      "ring_level": "wall"
-    },
-    {
-      "name": "overShelf-2",
-      "type": "overShelf",
-      "center": [
-        56098.31,
-        33033.11
-      ],
-      "angle": 90.0,
-      "size": [
-        600.0,
-        400.0
-      ],
-      "wall_contacts": 1,
-      "ring_level": "wall"
-    },
-    {
-      "name": "overShelf-3",
-      "type": "overShelf",
-      "center": [
-        56098.31,
-        32433.11
-      ],
-      "angle": 90.0,
-      "size": [
-        600.0,
         400.0
       ],
       "wall_contacts": 1,

@@ -8,24 +8,24 @@
   "wall_area_ratio": 1.0,
   "floating": 0,
   "unplaced": [],
-  "reason": "房间尺寸所限，800 宽的通道放不下全部物品，已自动收窄到 640（这是本房间能容纳的最宽通道）",
-  "elapsed_sec": 13.288,
+  "reason": "",
+  "elapsed_sec": 11.238,
   "metrics": {
     "room_area": 6572952.2,
     "items_area": 3142600.0,
     "utilization": 0.4781,
     "demand_ratio": 0.5029,
-    "free_area": 3317774.1,
-    "largest_free_area": 3317774.1,
+    "free_area": 3382845.1,
+    "largest_free_area": 3382845.1,
     "free_fragments": 1,
     "reserved_area": 324000.0,
     "usable_wall_length": 15941.0,
-    "wall_covered_length": 8310.5,
-    "wall_usage": 0.5213,
+    "wall_covered_length": 8630.5,
+    "wall_usage": 0.5414,
     "wall_area_ratio": 1.0,
-    "aisle_width": 640,
-    "core_dist": 630.0,
-    "core_area": 793454.9,
+    "aisle_width": 800.0,
+    "core_dist": 550.0,
+    "core_area": 1112326.3,
     "facing_core": 5,
     "ring_level": "wall",
     "doors": 1,
@@ -36,8 +36,8 @@
       "name": "fridge",
       "type": "fridge",
       "center": [
-        183863.59,
-        31307.72
+        183653.59,
+        32437.72
       ],
       "angle": 0.0,
       "size": [
@@ -45,7 +45,7 @@
         1330.0
       ],
       "wall_contacts": 1,
-      "fridge_opening_side": "top",
+      "fridge_opening_side": "bottom",
       "ring_level": "wall"
     },
     {
@@ -82,8 +82,8 @@
       "name": "overShelf-1",
       "type": "overShelf",
       "center": [
-        183073.59,
-        32802.72
+        184573.59,
+        30942.72
       ],
       "angle": 90.0,
       "size": [
@@ -98,7 +98,7 @@
       "type": "overShelf",
       "center": [
         184073.59,
-        29742.72
+        30442.72
       ],
       "angle": 0.0,
       "size": [
@@ -112,15 +112,15 @@
       "name": "overShelf-3",
       "type": "overShelf",
       "center": [
-        184173.59,
-        30242.72
+        183073.59,
+        30842.72
       ],
       "angle": 90.0,
       "size": [
         600.0,
         400.0
       ],
-      "wall_contacts": 2,
+      "wall_contacts": 1,
       "ring_level": "wall"
     }
   ]

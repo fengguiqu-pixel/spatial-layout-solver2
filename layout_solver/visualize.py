@@ -8,6 +8,7 @@ from __future__ import annotations
 import os
 from typing import Dict, List, Optional, Tuple
 
+from .geometry import OBB, rotate_point
 from .scene import Scene
 from .solver import Solution, compute_metrics
 from .verify import _opening_edge_world
@@ -120,9 +121,13 @@ def render_png(scene: Scene, sol: Solution, path: str,
         d.text((cx, cy + 8), f"{p.item.length:.0f}x{p.item.width:.0f} @ {p.angle:.1f}deg",
                fill=(90, 90, 90), font=f_small, anchor="mm")
 
-    # 冰箱开门边
+    # 冰箱开门禁区：门板实际扫过的 length × length/2 矩形（硬禁放）
     for p in sol.placements:
-        if p.item.is_fridge and p.open_side:
+        if p.item.is_fridge and p.strip is not None:
+            c = rotate_point(p.strip.center, sol.frame_angle)
+            zone = OBB(c[0], c[1], p.strip.w / 2.0, p.strip.h / 2.0, sol.frame_angle)
+            poly = [tx(pt) for pt in zone.corners()]
+            d.polygon(poly, fill=(150, 225, 195), outline=(20, 140, 90))
             a, b = _opening_edge_world(p, sol.frame_angle)
             d.line([tx(a), tx(b)], fill=(20, 140, 90), width=5)
             mx = (tx(a)[0] + tx(b)[0]) / 2

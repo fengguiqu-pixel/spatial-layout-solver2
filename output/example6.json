@@ -6,18 +6,18 @@
   "items_placed": 9,
   "wall_hugging": "3/9",
   "wall_area_ratio": 0.315,
-  "floating": 0,
+  "floating": 1,
   "unplaced": [],
   "reason": "空间不足以保留 800 宽的通道，已取消通道约束；沿墙一排排不完，部分物品贴着第一排又放了一排",
-  "elapsed_sec": 16.627,
+  "elapsed_sec": 23.114,
   "metrics": {
     "room_area": 10080000.0,
     "items_area": 4588600.0,
     "utilization": 0.4552,
     "demand_ratio": 0.5205,
-    "free_area": 4321972.8,
-    "largest_free_area": 4245994.2,
-    "free_fragments": 9,
+    "free_area": 4324175.1,
+    "largest_free_area": 4049991.3,
+    "free_fragments": 5,
     "reserved_area": 1264000.0,
     "usable_wall_length": 13200.0,
     "wall_covered_length": 3160.0,
@@ -29,7 +29,7 @@
     "facing_core": 9,
     "ring_level": "inner",
     "doors": 2,
-    "floating": 0
+    "floating": 1
   },
   "placements": [
     {
@@ -66,8 +66,8 @@
       "name": "iceMaker",
       "type": "iceMaker",
       "center": [
-        52993.27,
-        52813.43
+        52993.44,
+        52812.96
       ],
       "angle": 110.0,
       "size": [
@@ -81,24 +81,24 @@
       "name": "fridge",
       "type": "fridge",
       "center": [
-        52118.16,
-        52191.62
+        51270.28,
+        51962.83
       ],
-      "angle": 20.0,
+      "angle": 110.0,
       "size": [
         1220.0,
         1330.0
       ],
       "wall_contacts": 0,
-      "fridge_opening_side": "bottom",
+      "fridge_opening_side": "right",
       "ring_level": "inner"
     },
     {
       "name": "shelf-3",
       "type": "shelf",
       "center": [
-        50339.6,
-        50821.23
+        50426.66,
+        51751.56
       ],
       "angle": 110.0,
       "size": [
@@ -112,8 +112,8 @@
       "name": "shelf-4",
       "type": "shelf",
       "center": [
-        50715.48,
-        50958.04
+        50050.79,
+        51614.75
       ],
       "angle": 110.0,
       "size": [
@@ -127,8 +127,8 @@
       "name": "overShelf-1",
       "type": "overShelf",
       "center": [
-        53014.41,
-        52097.48
+        50324.4,
+        50863.0
       ],
       "angle": 110.0,
       "size": [
@@ -142,8 +142,8 @@
       "name": "overShelf-2",
       "type": "overShelf",
       "center": [
-        53390.3,
-        52234.24
+        50700.28,
+        50999.8
       ],
       "angle": 110.0,
       "size": [
@@ -157,10 +157,10 @@
       "name": "overShelf-3",
       "type": "overShelf",
       "center": [
-        51316.05,
-        51734.73
+        51896.31,
+        51222.29
       ],
-      "angle": 20.0,
+      "angle": 110.0,
       "size": [
         600.0,
         400.0

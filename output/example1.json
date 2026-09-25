@@ -5,24 +5,24 @@
   "items_total": 8,
   "items_placed": 8,
   "wall_hugging": "4/8",
-  "wall_area_ratio": 0.267,
+  "wall_area_ratio": 0.326,
   "floating": 0,
   "unplaced": [],
   "reason": "沿墙一排排不完，部分物品贴着第一排又放了一排",
-  "elapsed_sec": 12.62,
+  "elapsed_sec": 15.322,
   "metrics": {
     "room_area": 8813112.0,
     "items_area": 4188600.0,
     "utilization": 0.4753,
     "demand_ratio": 0.4941,
-    "free_area": 4386953.2,
-    "largest_free_area": 3990577.7,
-    "free_fragments": 2,
+    "free_area": 4381737.7,
+    "largest_free_area": 4381737.7,
+    "free_fragments": 1,
     "reserved_area": 336000.0,
     "usable_wall_length": 5754.4,
-    "wall_covered_length": 3200.2,
-    "wall_usage": 0.5561,
-    "wall_area_ratio": 0.2674,
+    "wall_covered_length": 2960.2,
+    "wall_usage": 0.5144,
+    "wall_area_ratio": 0.3261,
     "aisle_width": 800.0,
     "core_dist": 801.5,
     "core_area": 1296406.4,
@@ -78,16 +78,16 @@
       "ring_level": "wall"
     },
     {
-      "name": "shelf-1",
-      "type": "shelf",
+      "name": "iceMaker",
+      "type": "iceMaker",
       "center": [
-        6921.74,
-        30242.09
+        6696.74,
+        30122.09
       ],
       "angle": 90.0,
       "size": [
-        1000.0,
-        400.0
+        760.0,
+        850.0
       ],
       "wall_contacts": 1,
       "ring_level": "wall"
@@ -96,8 +96,8 @@
       "name": "fridge",
       "type": "fridge",
       "center": [
-        6056.74,
-        31136.49
+        6279.65,
+        31112.09
       ],
       "angle": 90.0,
       "size": [
@@ -109,16 +109,16 @@
       "ring_level": "inner"
     },
     {
-      "name": "iceMaker",
-      "type": "iceMaker",
+      "name": "shelf-1",
+      "type": "shelf",
       "center": [
-        6341.74,
-        29567.38
+        6221.74,
+        29342.38
       ],
       "angle": 0.0,
       "size": [
-        760.0,
-        850.0
+        1000.0,
+        400.0
       ],
       "wall_contacts": 0,
       "ring_level": "inner"
@@ -127,8 +127,8 @@
       "name": "shelf-2",
       "type": "shelf",
       "center": [
-        5761.74,
-        30026.49
+        6521.74,
+        32222.09
       ],
       "angle": 90.0,
       "size": [
@@ -143,7 +143,7 @@
       "type": "shelf",
       "center": [
         6121.74,
-        32246.49
+        32222.09
       ],
       "angle": 90.0,
       "size": [

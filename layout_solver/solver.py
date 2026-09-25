@@ -139,12 +139,19 @@ def _rank_key(sol: "Solution") -> Tuple:
 
 
 def _pick_key(res: Sequence["Placement"]) -> Tuple:
-    """同一层里两个方案谁更好：先看件数，件数相同看贴墙件数，再看贴墙总长。
+    """同一层里两个方案谁更好：件数 → 已放总面积 → 贴墙件数 → 贴墙总长。
 
-    件数相同的时候必须再比贴墙——否则"这件摆到第一排外面"和"干脆不放"会被判成
-    一样好，而题目要求的是尽量贴墙。
+    第二项"总面积"是必需的，不能只看件数：冰箱 1220×1330 一件顶五个货架，
+    而它的开门禁区（length × length/2）又最难满足。只比件数的话，搜索会发现
+    "丢掉冰箱、多塞两个小货架"件数一样甚至更多，于是把冰箱丢掉——然后冰箱在
+    下一层更没地方放，整题直接变不可行。件数相同时保大件，才不会拿最难的
+    那件去换最好塞的那件。
+
+    再往后才比贴墙：否则"这件摆到第一排外面"和"干脆不放"会被判成一样好，
+    而题目要求的是尽量贴墙。
     """
     return (len(res),
+            sum(p.item.area for p in res),
             sum(1 for p in res if p.wall_contacts > 0),
             sum(p.contact_len for p in res))
 
@@ -744,6 +751,21 @@ def _ranked_candidates(frame: Frame, item: Item, placed: Sequence[Placement],
                 continue
             out.append((_score(frame, rect, placed, forbidden, cov), rect))
     out.sort(key=lambda t: t[0])
+    if out and item.is_fridge:
+        # 冰箱：把"开门禁区放不下"的位置剔掉。
+        # DFS 只试排在最前面的少数几个候选，而冰箱的位置本来就稀缺——几十个候选里
+        # 往往只有个位数能让 length × length/2 的开门禁区完整落在轮廓内。不先筛的
+        # 话，排在最前面的全是"贴角贴得漂亮、但门打不开"的位置，试完一圈预算也
+        # 耗掉了，冰箱被跳过；而冰箱一旦留到下一层更没地方放，整题直接变不可行。
+        # 按打分顺序逐个验，凑够候选就收工，避免全量扫描拖慢搜索。
+        kept: List[Tuple[Tuple, Rect]] = []
+        for cand in out:
+            if len(kept) >= cfg.MAX_BRANCH + 2:
+                break
+            if fridge_open_strip(frame, cand[1], item, placed,
+                                 forbidden, strips) is not None:
+                kept.append(cand)
+        out = kept
     if len(out) > cfg.MAX_CANDIDATES:
         stride = len(out) / float(cfg.MAX_CANDIDATES)
         out = [out[int(i * stride)] for i in range(cfg.MAX_CANDIDATES)]
@@ -756,17 +778,21 @@ def _ranked_candidates(frame: Frame, item: Item, placed: Sequence[Placement],
 def fridge_open_strip(frame: Frame, rect: Rect, item: Item, placed: Sequence[Placement],
                       forbidden: Sequence[Rect], strips: Sequence[Rect] = ()
                       ) -> Optional[Tuple[str, Rect]]:
-    """挑冰箱的开门边，返回 (边名, 禁放探测带)。
+    """挑冰箱的开门边，返回 (边名, 开门禁区)。
 
     题目说"length 的其中一边为开门边"，也就是 length 是**面宽**（门/操作面那一面的
     宽度），width 是**进深**。所以冰箱贴墙时必然是后背朝墙、门开向房间内侧：开门边
     = 所贴墙面的**对面**那条边。
 
-    上一版拿"到最近墙面的距离场"去判断哪条边朝内，那是错的：距离场取的是到**最近**
-    墙面的距离，贴着一面长墙摆的时候整条带子都被那面墙支配，沿墙方向走多远距离都
-    不变，于是两条候选边一起被判成"不朝内"，冰箱永远放不下。这里改用几何判据。
+    禁区不是薄薄一条缝，而是**门板实际扫过的区域**：对开门冰箱每扇门宽 length/2，
+    绕铰链转开 90°，扫过 宽 length × 深 length/2 的矩形。这块是硬禁放区——
+    取 1 mm 探测带只挡住了"紧贴"，门照样转不出来。
+
+    上一版拿"到最近墙面的距离场"去判断哪条边朝内，那也是错的：距离场取的是到
+    **最近**墙面的距离，贴着一面长墙摆的时候整条带子都被那面墙支配，沿墙方向走
+    多远距离都不变，于是两条候选边一起被判成"不朝内"，冰箱永远放不下。
     """
-    buf = cfg.FRIDGE_OPEN_BUFFER
+    buf = item.length * cfg.FRIDGE_OPEN_DEPTH_RATIO
     eps = 1e-6
     length_along_x = abs(rect.w - item.length) < eps
     if length_along_x:                      # length 沿 x → 上下两条边是 length 边
@@ -798,11 +824,13 @@ def fridge_open_strip(frame: Frame, rect: Rect, item: Item, placed: Sequence[Pla
         obb = strip.as_obb()
         if not rect_inside_polygon(obb, frame.poly, 1e-6):
             continue                          # 这一侧顶着墙，门打不开
-        if any(obb_overlap(obb, p.rect.as_obb(), 0.0) for p in placed):
+        # 禁区里不许有任何东西，连"紧贴"都算违规：负容差 = 间隙小于 CONTACT_TOL 就否掉。
+        # 用 0.0 的话，正好贴着门扫掠区边缘摆一件会被放过——门板照样打不开。
+        if any(obb_overlap(obb, p.rect.as_obb(), -cfg.CONTACT_TOL) for p in placed):
             continue
-        if any(obb_overlap(obb, r.as_obb(), 0.0) for r in forbidden):
+        if any(obb_overlap(obb, r.as_obb(), -cfg.CONTACT_TOL) for r in forbidden):
             continue
-        if any(obb_overlap(obb, r.as_obb(), 0.0) for r in strips):
+        if any(obb_overlap(obb, r.as_obb(), -cfg.CONTACT_TOL) for r in strips):
             continue
         if any(obb_overlap(obb, z, 0.0) for z in frame.zones_obb):
             continue
@@ -949,13 +977,17 @@ def _solve_level(frame: Frame, level: int, items: Sequence[Item],
         sorted(items, key=lambda it: (-max(it.length, it.width), -it.area, it.name)),
         sorted(items, key=lambda it: (it.area, it.name)),
     ]
+    # 上一层（或更靠前的层）已经放好的冰箱，它们的开门禁区必须带进这一层。
+    # 传空列表的话，降级到 inner / free 层之后放的物品会直接压到冰箱门扫掠区上——
+    # 摆放时不知道有这块禁区，自检却会判违规。
+    base_strips = [p.strip for p in pre_placed if p.strip is not None]
     best: Optional[List[Placement]] = None
     nodes = 0
     for order in all_orders[: max(1, orders)]:
         # scale 同时缩放节点预算：探测阶段只问"这一档通道放不放得下"，不必搜到底
         budget = _Budget(max(50, int(cfg.NODE_BUDGET * scale)), cfg.TIME_BUDGET)
-        res = _dfs(frame, order, 0, list(pre_placed), reserved_rects(frame), [],
-                   budget, level, None, {})
+        res = _dfs(frame, order, 0, list(pre_placed), reserved_rects(frame),
+                   list(base_strips), budget, level, None, {})
         nodes += budget.nodes
         if res is None:
             continue
@@ -983,10 +1015,36 @@ def quick_infeasibility(scene: Scene) -> str:
     return ""
 
 
+def _fridge_pins(frame: Frame, items: Sequence[Item], level: int,
+                 max_pins: int = 4) -> List[Placement]:
+    """冰箱所有"开门禁区放得下"的落点，按打分排序后取前 max_pins 个。"""
+    fridge = next((it for it in items if it.is_fridge), None)
+    if fridge is None:
+        return []
+    zones = reserved_rects(frame)
+    out: List[Placement] = []
+    for _, rect in ranked_candidates(frame, fridge, [], zones, [], None, level)[:40]:
+        got = fridge_open_strip(frame, rect, fridge, [], zones, [])
+        if got is None:
+            continue
+        side, strip = got
+        wc, clen = _wall_contact_info(frame, rect)
+        out.append(Placement(
+            item=fridge, rect=rect, obb=_to_world(frame, rect),
+            angle=_output_angle(frame, rect, fridge), wall_contacts=wc,
+            contact_len=clen, item_contacts=0, open_side=side, strip=strip,
+            facing_core=_facing_core(frame, rect), ring_level=level,
+            wall_dir=_main_wall_dir(frame, rect)))
+        if len(out) >= max_pins:
+            break
+    return out
+
+
 def _fill_frame(scene: Scene, angle: float, levels: Sequence[int],
                 door_clearance: Optional[float], t0: float,
                 scale: float = 1.0, orders: int = 3,
-                access_relaxed: bool = False) -> Solution:
+                access_relaxed: bool = False,
+                pin_fridge: bool = False) -> Solution:
     """在固定朝向下分级填充：贴墙层放多少算多少，剩下的交给下一层降级。
 
     朝向必须固定——不同朝向的坐标系不一样，混着放没法做重叠检测。
@@ -1001,16 +1059,37 @@ def _fill_frame(scene: Scene, angle: float, levels: Sequence[int],
                          edge_angle_deg(a, b)))
     frame = build_frame(scene, angle, extra, access_relaxed)
 
-    placed: List[Placement] = []
-    nodes = 0
-    for level in levels:
-        remaining = [it for it in scene.items if all(p.item.name != it.name for p in placed)]
-        if not remaining:
-            break
-        placed, n = _solve_level(frame, level, remaining, placed, scale, orders)
-        nodes += n
-        if len(placed) >= len(scene.items):
-            break
+    def run(seed: Sequence[Placement]) -> Tuple[List[Placement], int]:
+        placed: List[Placement] = list(seed)
+        nodes = 0
+        for level in levels:
+            remaining = [it for it in scene.items
+                         if all(p.item.name != it.name for p in placed)]
+            if not remaining:
+                break
+            placed, n = _solve_level(frame, level, remaining, placed, scale, orders)
+            nodes += n
+            if len(placed) >= len(scene.items):
+                break
+        return placed, nodes
+
+    if pin_fridge:
+        # 冰箱定向搜索：先把它钉在某个可用落点上，再跑完整的层级级联。
+        # 常规流程里贴墙层做决策时**看不到下一层**——它只比较本层件数，于是
+        # "丢掉冰箱、多塞两个小件"常常赢；而冰箱一旦被丢到下一层，那里空间更碎、
+        # 更放不下，整题就废了。钉住能补上这个跨层视野：example5 由此从 7/8
+        # （无冰箱）回到 8/8 全放下。
+        placed: List[Placement] = []
+        nodes = 0
+        for pin in _fridge_pins(frame, scene.items, levels[0] if len(levels) else 0):
+            got, n = run([pin])
+            nodes += n
+            if _better(got, placed):
+                placed = got
+            if len(placed) >= len(scene.items):
+                break
+    else:
+        placed, nodes = run([])
 
     placed_names = {p.item.name for p in placed}
     unplaced = [it.name for it in scene.items if it.name not in placed_names]
@@ -1027,12 +1106,13 @@ def _fill_frame(scene: Scene, angle: float, levels: Sequence[int],
 
 def _fill(scene: Scene, levels: Sequence[int], door_clearance: Optional[float], t0: float,
           scale: float = 1.0, orders: int = 3,
-          access_relaxed: bool = False) -> Solution:
+          access_relaxed: bool = False, pin_fridge: bool = False) -> Solution:
     """遍历所有合法朝向，取摆放效果最好的那个。"""
     frames = candidate_frames(scene)
     best: Optional[Solution] = None
     for ang in frames:
-        sol = _fill_frame(scene, ang, levels, door_clearance, t0, scale, orders, access_relaxed)
+        sol = _fill_frame(scene, ang, levels, door_clearance, t0, scale, orders,
+                          access_relaxed, pin_fridge)
         key = (len(sol.placements), _rank_key(sol))
         if best is None or key > (len(best.placements), _rank_key(best)):
             best = sol
@@ -1087,36 +1167,44 @@ def solve(scene: Scene, door_clearance: Optional[float] = None,
     # 通道收到下限还放不下 → 放弃通道，最后一层可以把剩下的摆到房间中央
     if chosen is None:
         build_core(scene, 0.0)
-        sol = _fill(scene, (0, 1, 2), door_clearance, t0, scale=0.3, orders=1,
-                    access_relaxed=True)
-        if sol.feasible:
-            chosen = 0.0
-        elif sol is not None:
-            last = sol
+        probe = _fill(scene, (0, 1, 2), door_clearance, t0, scale=0.3, orders=1,
+                      access_relaxed=True)
+        if probe is not None and (last is None or
+                                  len(probe.placements) > len(last.placements)):
+            last = probe
+        # 不能直接认输：探测阶段只有 30% 预算、一种摆放顺序，拿它当最终答案会把
+        # 本来放得下的大件（冰箱）牺牲掉换几个小件。取消通道后仍要全预算再搜一遍。
+        chosen = 0.0
 
-    if chosen is not None:
-        build_core(scene, chosen)
-        levels = (0, 1, 2) if chosen <= 0 else (0, 1)
-        sol = _fill(scene, levels, door_clearance, t0, scale=1.0, orders=3,
-                    access_relaxed=chosen <= 0 or chosen < cfg.AISLE_WIDTH)
-        repair_overlaps(scene, sol)
-        if chosen > 0 and chosen < cfg.AISLE_WIDTH:
-            sol.reason = (f"房间尺寸所限，{cfg.AISLE_WIDTH:.0f} 宽的通道放不下全部物品，"
-                          f"已自动收窄到 {chosen:.0f}（这是本房间能容纳的最宽通道）")
-        elif chosen == 0 and cfg.ENABLE_AISLE:
-            sol.reason = f"空间不足以保留 {cfg.AISLE_WIDTH:.0f} 宽的通道，已取消通道约束"
-        if sol.ring_level == "inner":
-            sol.reason = ((sol.reason + "；") if sol.reason else "") + \
-                "沿墙一排排不完，部分物品贴着第一排又放了一排"
-        elif sol.ring_level == "free":
-            sol.reason = ((sol.reason + "；") if sol.reason else "") + \
-                "沿墙排不完，剩余物品摆到了房间中央"
-        return sol
-
-    if last is not None:
-        last.reason = last.reason or "沿墙排布与中央摆放都放不下全部物品"
-        return last
-    return Solution(feasible=False, elapsed=time.time() - t0)
+    build_core(scene, chosen)
+    levels = (0, 1, 2) if chosen <= 0 else (0, 1)
+    sol = _fill(scene, levels, door_clearance, t0, scale=1.0, orders=3,
+                access_relaxed=chosen <= 0 or chosen < cfg.AISLE_WIDTH)
+    if last is not None and len(last.placements) > len(sol.placements):
+        sol = last                      # 全预算反而更少（罕见），退回探测阶段的解
+    if sol.unplaced and any(it.is_fridge for it in scene.items):
+        # 全预算常规搜索还是没放满 → 换冰箱定向搜索再试一次。
+        # 只在常规流程失败时才走这条路：它要把冰箱逐个落点钉住重搜，比常规贵。
+        alt = _fill(scene, levels, door_clearance, t0, scale=1.0, orders=2,
+                    access_relaxed=chosen <= 0 or chosen < cfg.AISLE_WIDTH,
+                    pin_fridge=True)
+        if len(alt.placements) > len(sol.placements):
+            sol = alt
+    repair_overlaps(scene, sol)
+    if chosen > 0 and chosen < cfg.AISLE_WIDTH:
+        sol.reason = (f"房间尺寸所限，{cfg.AISLE_WIDTH:.0f} 宽的通道放不下全部物品，"
+                      f"已自动收窄到 {chosen:.0f}（这是本房间能容纳的最宽通道）")
+    elif chosen == 0 and cfg.ENABLE_AISLE:
+        sol.reason = f"空间不足以保留 {cfg.AISLE_WIDTH:.0f} 宽的通道，已取消通道约束"
+    if sol.ring_level == "inner":
+        sol.reason = ((sol.reason + "；") if sol.reason else "") + \
+            "沿墙一排排不完，部分物品贴着第一排又放了一排"
+    elif sol.ring_level == "free":
+        sol.reason = ((sol.reason + "；") if sol.reason else "") + \
+            "沿墙排不完，剩余物品摆到了房间中央"
+    if not sol.feasible:
+        sol.reason = sol.reason or "沿墙排布与中央摆放都放不下全部物品"
+    return sol
 
 
 # ---------------------------------------------------------------------------
@@ -1429,7 +1517,9 @@ def _mtv(a: OBB, b: OBB) -> Tuple[float, Optional[Point]]:
     return best, vmul(best_ax, sign)
 
 
-def _placement_ok(scene: Scene, p: Placement, others: Sequence[Placement]) -> bool:
+def _placement_ok(scene: Scene, p: Placement, others: Sequence[Placement],
+                  strips: Sequence[OBB] = ()) -> bool:
+    """世界坐标下单独复检一件物品。strips = 各冰箱的开门禁区（世界坐标）。"""
     if not rect_inside_polygon(p.obb, scene.polygon, cfg.INSIDE_TOL):
         return False
     for z in scene.zones:
@@ -1441,18 +1531,55 @@ def _placement_ok(scene: Scene, p: Placement, others: Sequence[Placement]) -> bo
     for q in others:
         if obb_overlap(p.obb, q.obb, 0.0):
             return False
+    for s in strips:
+        # 冰箱开门禁区现在是 length × length/2 的实体区域，任何东西都不得压入，
+        # 连"贴着"都不行——门板要扫过去
+        if obb_overlap(p.obb, s, -cfg.CONTACT_TOL):
+            return False
     return True
 
 
-def repair_overlaps(scene: Scene, sol: Solution, margin: float = 0.05) -> int:
+def _apply_moves(scene: Scene, sol: "Solution", strips: Sequence[Tuple[int, "OBB"]],
+                 moves: Dict[int, Point]) -> bool:
+    """把若干物品整体平移一小步；只要有一件变得不合法就全部回滚。"""
+    olds = {}
+    for k, mv in moves.items():
+        p = sol.placements[k]
+        olds[k] = p.obb
+        p.obb = OBB(p.obb.cx + mv[0], p.obb.cy + mv[1],
+                    p.obb.hw, p.obb.hh, p.obb.angle)
+    for k in moves:
+        p = sol.placements[k]
+        others = [q for t, q in enumerate(sol.placements) if t != k]
+        if not _placement_ok(scene, p, others, [s for t, s in strips if t != k]):
+            for kk, ob in olds.items():
+                sol.placements[kk].obb = ob
+            return False
+    for k in moves:
+        p = sol.placements[k]
+        c = rotate_point(p.obb.center, -sol.frame_angle)
+        p.rect = Rect(c[0] - p.obb.hw, c[1] - p.obb.hh,
+                      c[0] + p.obb.hw, c[1] + p.obb.hh)
+    return True
+
+
+def repair_overlaps(scene: Scene, sol: Solution, margin: float = 0.5) -> int:
     """把互相压进去一点点的物品沿最小平移方向推开（通常是亚毫米级浮点误差）。
 
     摆放是在旋转坐标系里做的，斜朝向时"贴墙"会有零点几毫米的误差，
     两个分别贴不同墙的物品可能互相压进一点点。这里在世界坐标下做一次收尾修正，
     保证交付的结果是**零重叠**的。
+
+    一次推开往往不成功：被夹在墙和其它物品之间时，往哪个方向都会撞上新的东西。
+    所以依次试三种方案——只推 a、只推 b、a 和 b 各让一半。最后一种是斜朝向场景里
+    真正管用的那个（两边各退 0.1 mm 就能分开，单独推谁都撞）。
     """
     fixed = 0
-    for _ in range(3):
+    # 冰箱开门禁区（世界坐标）。收尾推挤时必须带上：只检查"物品两两不重叠"的话，
+    # 推开的那一下可能正好把某件推进冰箱的门扫掠区里。
+    strips = [(k, q.strip.as_obb().rotated(sol.frame_angle))
+              for k, q in enumerate(sol.placements) if q.strip is not None]
+    for _ in range(4):
         moved_any = False
         for i in range(len(sol.placements)):
             for j in range(len(sol.placements)):
@@ -1462,19 +1589,14 @@ def repair_overlaps(scene: Scene, sol: Solution, margin: float = 0.05) -> int:
                 depth, direction = _mtv(a.obb, b.obb)
                 if direction is None or depth <= 0:
                     continue
-                move = vmul(direction, depth + margin)
-                old = a.obb
-                a.obb = OBB(a.obb.cx + move[0], a.obb.cy + move[1],
-                            a.obb.hw, a.obb.hh, a.obb.angle)
-                others = [q for k, q in enumerate(sol.placements) if k != i]
-                if _placement_ok(scene, a, others):
-                    c = rotate_point(a.obb.center, -sol.frame_angle)
-                    a.rect = Rect(c[0] - a.obb.hw, c[1] - a.obb.hh,
-                                  c[0] + a.obb.hw, c[1] + a.obb.hh)
+                m = depth + margin
+                half = vmul(direction, m / 2.0)
+                if (_apply_moves(scene, sol, strips, {i: vmul(direction, m)})
+                        or _apply_moves(scene, sol, strips, {j: vmul(direction, -m)})
+                        or _apply_moves(scene, sol, strips,
+                                        {i: half, j: vmul(direction, -m / 2.0)})):
                     moved_any = True
                     fixed += 1
-                else:
-                    a.obb = old
         if not moved_any:
             break
     return fixed
