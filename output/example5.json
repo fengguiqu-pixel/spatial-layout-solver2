@@ -1,155 +1,157 @@
 {
   "feasible": true,
-  "frame_angle": 29.994,
+  "frame_angle": 45.852,
+  "ring_level": "inner",
   "items_total": 8,
   "items_placed": 8,
-  "wall_hugging": "3/8",
-  "wall_area_ratio": 0.172,
+  "wall_hugging": "2/8",
+  "wall_area_ratio": 0.212,
   "floating": 0,
   "unplaced": [],
-  "reason": "房间尺寸所限，800 宽的通道放不下全部物品，已自动收窄到 360（这是本房间能容纳的最宽通道）",
-  "elapsed_sec": 10.612,
+  "reason": "沿墙一排排不完，部分物品贴着第一排又放了一排",
+  "elapsed_sec": 2.91,
   "metrics": {
     "room_area": 8813111.9,
     "items_area": 4188600.0,
     "utilization": 0.4753,
-    "demand_ratio": 0.4753,
-    "free_area": 4625114.4,
-    "free_ratio": 0.5248,
-    "largest_free_area": 4448218.0,
-    "free_fragments": 17,
-    "reserved_area": 0,
-    "usable_wall_length": 5754.4,
-    "wall_area_ratio": 0.1719,
-    "wall_covered_length": 2200.4,
-    "wall_usage": 0.3824,
-    "aisle_length": 2684.0,
-    "aisle_width": 360,
-    "aisle_facing": 8,
+    "demand_ratio": 0.4941,
+    "free_area": 4358629.6,
+    "largest_free_area": 4339862.6,
+    "free_fragments": 8,
+    "reserved_area": 336000.0,
+    "usable_wall_length": 7022.3,
+    "wall_covered_length": 1360.0,
+    "wall_usage": 0.1937,
+    "wall_area_ratio": 0.2115,
+    "aisle_width": 800.0,
+    "core_dist": 794.4,
+    "core_area": 1357743.4,
+    "facing_core": 6,
+    "ring_level": "inner",
     "doors": 1,
     "floating": 0
   },
   "placements": [
     {
-      "name": "overShelf-1",
-      "type": "overShelf",
-      "center": [
-        7407.7,
-        29721.17
-      ],
-      "angle": 119.994,
-      "size": [
-        600.0,
-        400.0
-      ],
-      "wall_contacts": 2,
-      "facing_aisle": true
-    },
-    {
-      "name": "overShelf-2",
-      "type": "overShelf",
-      "center": [
-        7101.54,
-        30251.47
-      ],
-      "angle": 119.994,
-      "size": [
-        600.0,
-        400.0
-      ],
-      "wall_contacts": 1,
-      "facing_aisle": true
-    },
-    {
-      "name": "overShelf-3",
-      "type": "overShelf",
-      "center": [
-        7024.32,
-        29384.62
-      ],
-      "angle": 29.994,
-      "size": [
-        600.0,
-        400.0
-      ],
-      "wall_contacts": 1,
-      "facing_aisle": true
-    },
-    {
-      "name": "shelf-1",
-      "type": "shelf",
-      "center": [
-        6651.34,
-        29631.18
-      ],
-      "angle": 29.994,
-      "size": [
-        1000.0,
-        400.0
-      ],
-      "wall_contacts": 0,
-      "facing_aisle": true
-    },
-    {
-      "name": "shelf-2",
-      "type": "shelf",
-      "center": [
-        6041.55,
-        30087.5
-      ],
-      "angle": 119.994,
-      "size": [
-        1000.0,
-        400.0
-      ],
-      "wall_contacts": 0,
-      "facing_aisle": true
-    },
-    {
-      "name": "shelf-3",
-      "type": "shelf",
-      "center": [
-        5776.01,
-        29747.3
-      ],
-      "angle": 119.994,
-      "size": [
-        1000.0,
-        400.0
-      ],
-      "wall_contacts": 0,
-      "facing_aisle": true
-    },
-    {
       "name": "iceMaker",
       "type": "iceMaker",
       "center": [
-        5601.63,
-        30849.65
+        5463.29,
+        30131.63
       ],
-      "angle": 119.994,
+      "angle": 135.852,
       "size": [
         760.0,
         850.0
       ],
-      "wall_contacts": 0,
-      "facing_aisle": true
+      "wall_contacts": 1,
+      "ring_level": "wall"
+    },
+    {
+      "name": "overShelf-1",
+      "type": "overShelf",
+      "center": [
+        5794.51,
+        29496.55
+      ],
+      "angle": 135.852,
+      "size": [
+        600.0,
+        400.0
+      ],
+      "wall_contacts": 1,
+      "ring_level": "wall"
     },
     {
       "name": "fridge",
       "type": "fridge",
       "center": [
-        5150.24,
-        31732.19
+        5104.84,
+        31183.79
       ],
-      "angle": 119.994,
+      "angle": 135.852,
       "size": [
         1220.0,
         1330.0
       ],
       "wall_contacts": 0,
       "fridge_opening_side": "right",
-      "facing_aisle": true
+      "ring_level": "inner"
+    },
+    {
+      "name": "shelf-1",
+      "type": "shelf",
+      "center": [
+        5984.72,
+        30496.51
+      ],
+      "angle": 135.852,
+      "size": [
+        1000.0,
+        400.0
+      ],
+      "wall_contacts": 0,
+      "ring_level": "inner"
+    },
+    {
+      "name": "shelf-2",
+      "type": "shelf",
+      "center": [
+        6263.32,
+        30783.53
+      ],
+      "angle": 135.852,
+      "size": [
+        1000.0,
+        400.0
+      ],
+      "wall_contacts": 0,
+      "ring_level": "inner"
+    },
+    {
+      "name": "shelf-3",
+      "type": "shelf",
+      "center": [
+        6216.62,
+        29644.26
+      ],
+      "angle": 135.852,
+      "size": [
+        1000.0,
+        400.0
+      ],
+      "wall_contacts": 0,
+      "ring_level": "inner"
+    },
+    {
+      "name": "overShelf-2",
+      "type": "overShelf",
+      "center": [
+        6523.93,
+        29903.42
+      ],
+      "angle": 135.852,
+      "size": [
+        600.0,
+        400.0
+      ],
+      "wall_contacts": 0,
+      "ring_level": "inner"
+    },
+    {
+      "name": "overShelf-3",
+      "type": "overShelf",
+      "center": [
+        6802.57,
+        30190.47
+      ],
+      "angle": 135.852,
+      "size": [
+        600.0,
+        400.0
+      ],
+      "wall_contacts": 0,
+      "ring_level": "inner"
     }
   ]
 }

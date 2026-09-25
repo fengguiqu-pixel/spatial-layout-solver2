@@ -23,9 +23,9 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
 from . import config as cfg
-from .circulation import aisle_length, compute_aisle
-from .geometry import (OBB, Point, clean_polygon, point_in_polygon, polygon_bbox, polygon_edges,
-                       rotate_point, vadd, vdist, vmul, vsub, vunit)
+from .distfield import DistField, core_distance
+from .geometry import (OBB, Point, clean_polygon, edge_angle_deg, point_in_polygon, polygon_bbox,
+                       polygon_edges, rotate_point, vadd, vdist, vmul, vsub, vunit)
 
 # 物品类型：从名称里去掉 "-1" 之类的序号后缀
 KNOWN_TYPES = ("fridge", "shelf", "overShelf", "iceMaker")
@@ -75,9 +75,10 @@ class Scene:
     doors: List[Door]
     items: List[Item]
     reserved: List[OBB] = field(default_factory=list)   # 内开门占用的 N×N 空间
-    aisle_poly: List[Point] = field(default_factory=list)
-    aisle_band: List[OBB] = field(default_factory=list)
-    aisle_width: float = 0.0
+    door_clear: List[OBB] = field(default_factory=list)  # 门洞 + 两侧净空的薄禁放条
+    field: Optional[DistField] = None   # 到墙面的距离场（世界坐标，只算一次）
+    core_dist: float = 0.0              # 物品最内侧允许到达的 dist 上限
+    aisle_width: float = 0.0            # 实际采用的中央通道保证宽度
     door_inward: Point = (0.0, 0.0)      # 入口门的朝内法向
     exit_inward: Point = (0.0, 0.0)
 
@@ -107,13 +108,15 @@ class Scene:
     # ---- 禁放区 ----
     @property
     def zones(self) -> List[OBB]:
-        """所有硬禁放区：内开门 N×N + 动线通道。"""
-        return list(self.reserved) + list(self.aisle_band)
+        """所有硬禁放区：内开门 N×N + 门洞两侧净空条。"""
+        return list(self.reserved) + list(self.door_clear)
 
     @property
     def aisle_area_est(self) -> float:
-        """动线带面积估算（去掉重叠后的近似：中心线长 × 宽）。"""
-        return aisle_length(self.aisle_poly) * self.aisle_width
+        """中央内核的面积估算（quick_infeasibility 里要把它从可用面积里扣掉）。"""
+        if self.field is None or self.core_dist <= 0:
+            return 0.0
+        return self.field.core_area(self.core_dist)
 
 
 def _inward_normal(seg: Tuple[Point, Point], poly: List[Point], probe: float = 1.0) -> Point:
@@ -178,22 +181,36 @@ def build_scene(data: Dict, name: str = "scene", aisle_width: Optional[float] = 
                                           d.points[1][0] - d.points[0][0]))
             reserved.append(OBB(center[0], center[1], N / 2.0, N / 2.0, ang))
 
+    # 门洞两侧净空：沿门所在的墙面向两侧各让出 DOOR_SIDE_CLEARANCE，这段墙不许贴东西。
+    # 做成一条很薄的禁放条（只有 DOOR_CLEAR_DEPTH 厚）——它的作用是"占住墙面"，
+    # 不是真的要占掉一块面积。
+    door_clear: List[OBB] = []
+    depth = cfg.DOOR_CLEAR_DEPTH
+    if depth > 0:
+        for d, n in zip(doors, inward_norms):
+            a, b = d.points
+            half = d.width / 2.0 + cfg.DOOR_SIDE_CLEARANCE
+            center = vadd(d.mid, vmul(n, depth / 2.0))
+            door_clear.append(OBB(center[0], center[1], half, depth / 2.0, edge_angle_deg(a, b)))
+
     scene = Scene(name=name, polygon=poly, doors=doors, items=items, reserved=reserved,
+                  door_clear=door_clear, field=DistField(poly),
                   door_inward=inward_norms[0],
                   exit_inward=inward_norms[1] if len(inward_norms) > 1 else inward_norms[0])
 
     width = cfg.AISLE_WIDTH if aisle_width is None else aisle_width
-    if cfg.ENABLE_AISLE and width > 0:
-        build_aisle(scene, width)
+    build_core(scene, width)
     return scene
 
 
-def build_aisle(scene: Scene, width: float, mode: str = "center") -> None:
-    """（重）算动线，写回 scene。"""
-    poly, band = compute_aisle(scene, width, mode)
-    scene.aisle_poly = poly
-    scene.aisle_band = band
-    scene.aisle_width = width if band else 0.0
+def build_core(scene: Scene, width: float) -> None:
+    """（重）算中央内核：给定要保留的通道宽度，反解物品最深能摆到哪。"""
+    if not cfg.ENABLE_AISLE or width <= 0 or scene.field is None:
+        scene.aisle_width = 0.0
+        scene.core_dist = 0.0
+        return
+    scene.aisle_width = width
+    scene.core_dist = core_distance(scene.field, width)
 
 
 def load_scene(path: str, aisle_width: Optional[float] = None) -> Scene:

@@ -72,18 +72,21 @@ def render_png(scene: Scene, sol: Solution, path: str,
     for a, b in zip(poly_px, poly_px[1:] + poly_px[:1]):
         d.line([a, b], fill=(40, 40, 40), width=3)
 
-    # 动线通道（先画，压在物品下面）
-    for b in scene.aisle_band:
-        pts = [tx(c) for c in b.corners()]
-        d.polygon(pts, fill=(226, 240, 250))
-    if len(scene.aisle_poly) >= 2:
-        ap = [tx(p) for p in scene.aisle_poly]
-        d.line(ap, fill=(60, 130, 200), width=3, joint="curve")
-        for p, q in zip(ap, ap[1:]):
-            _arrow(d, p, q, (60, 130, 200))
-        mx, my = ap[len(ap) // 2]
-        d.text((mx, my - 12), f"AISLE {scene.aisle_width:.0f}", fill=(40, 110, 180),
-               font=f_small, anchor="mm")
+    # 中央内核（通道）：物品全部贴墙之后，中间剩下的一整块空地
+    if scene.core_dist > 0 and scene.field is not None:
+        fld = scene.field
+        cells = fld.core_cells(scene.core_dist)
+        hw, hh = fld.cw / 2.0, fld.ch / 2.0
+        for (i, j) in cells:
+            c = fld.cell_center(i, j)
+            p0 = tx((c[0] - hw, c[1] + hh))
+            p1 = tx((c[0] + hw, c[1] - hh))
+            d.rectangle([p0, p1], fill=(226, 240, 250), outline=None)
+        if cells:
+            i, j = cells[len(cells) // 2]
+            mx, my = tx(fld.cell_center(i, j))
+            d.text((mx, my), f"KEEP CLEAR {scene.aisle_width:.0f}", fill=(40, 110, 180),
+                   font=f_small, anchor="mm")
 
     # 内开门 N×N 禁放区
     for rz in scene.reserved:
@@ -128,11 +131,11 @@ def render_png(scene: Scene, sol: Solution, path: str,
 
     # 标题
     m = compute_metrics(scene, sol)
-    title = (f"{scene.name}   feasible={sol.feasible}   "
+    title = (f"{scene.name}   feasible={sol.feasible}   ring={sol.ring_level}   "
              f"frame={sol.frame_angle:.2f}deg   "
              f"wall-hugging={sol.wall_contact_count}/{len(scene.items)}   "
-             f"utilization={m['utilization'] * 100:.1f}%   "
-             f"free={m['free_area']:,.0f} (largest block {m['largest_free_area']:,.0f})")
+             f"wall-usage={m['wall_usage'] * 100:.0f}%   "
+             f"keep-clear={m['aisle_width']:.0f}")
     d.text((pad, 14), title, fill=(20, 20, 20), font=f_big)
 
     # 图例
@@ -147,7 +150,8 @@ def render_png(scene: Scene, sol: Solution, path: str,
         cur += 22 + 8 * len(kind) + 16
     d.text((pad, ly + 26),
            "green = ENTER   blue = EXIT   red = door (kept clear)   "
-           "orange = inward door swing N x N   light blue = aisle   dark green = fridge opening side",
+           "orange = inward door swing N x N   light blue = keep-clear core (aisle)   "
+           "dark green = fridge opening side",
            fill=(90, 90, 90), font=f_small)
 
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
